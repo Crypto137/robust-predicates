@@ -1,8 +1,16 @@
-﻿namespace RobustPredicates
+﻿using System;
+
+namespace RobustPredicates
 {
     internal static class ArithmeticFunctions
     {
         internal static double Estimate(int len, double[] e)
+        {
+            Span<double> se = e.AsSpan();
+            return Estimate(len, ref se);
+        }
+
+        internal static double Estimate(int len, ref Span<double> e)
         {
             int eindex;
 
@@ -46,6 +54,15 @@
         }
 
         internal static int FastExpansionSumZeroelim(int elen, double[] e, int flen, double[] f, double[] h)
+        {
+            Span<double> se = e.AsSpan();
+            Span<double> sf = f.AsSpan();
+            Span<double> sh = h.AsSpan();
+
+            return FastExpansionSumZeroelim(elen, ref se, flen, ref sf, ref sh);
+        }
+
+        internal static int FastExpansionSumZeroelim(int elen, ref Span<double> e, int flen, ref Span<double> f, ref Span<double> h)
         {
             int findex;
             double Q;
