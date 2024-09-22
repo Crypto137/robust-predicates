@@ -6,11 +6,11 @@
 A port to C# of the robust predicates for computational geomerty code from Jonathan Richard Shewchuk.</Description>
     <Company />
     <Product>Robust predicates for computational geometry</Product>
-    <Authors>modios</Authors>
+    <Authors>modios, Crypto137</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Copyright>modios</Copyright>
-    <RepositoryUrl>https://github.com/modios/robust-predicates</RepositoryUrl>
-    <Version>1.0.0-beta</Version>
+    <Copyright>modios, Crypto137</Copyright>
+    <RepositoryUrl>https://github.com/Crypto137/robust-predicates</RepositoryUrl>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
 </Project>
