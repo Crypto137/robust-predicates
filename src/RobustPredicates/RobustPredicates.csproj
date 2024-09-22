@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Description>Robust predicates for computational geometry.
 A port to C# of the robust predicates for computational geomerty code from Jonathan Richard Shewchuk.</Description>
     <Company />
