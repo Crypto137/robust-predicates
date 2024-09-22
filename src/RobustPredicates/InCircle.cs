@@ -2,7 +2,7 @@
 
 namespace RobustPredicates
 {
-    public static class InCirlce
+    public static class InCircle
     {
         public static double Fast(double[] pa, double[] pb, double[] pc, double[] pd)
         {
