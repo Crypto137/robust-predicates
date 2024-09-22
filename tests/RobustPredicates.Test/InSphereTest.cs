@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -41,11 +42,11 @@ namespace RobustPredicates.Test
             double[] numbers =
               File.ReadAllLines("test_data/simple_data/insphere-points3d.txt")
               .Select(n => n.Split()).SelectMany(x => x)
-              .Select(s => double.Parse(s)).ToArray();
+              .Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
             double[] results =
              File.ReadAllLines("test_data/simple_data/results-insphere.txt")
              .Select(n => n.Split()).SelectMany(x => x)
-             .Select(s => double.Parse(s)).ToArray();
+             .Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
 
             int count = 0;
             for (int i = 0; i < NSimpleData; i += 15)
@@ -91,11 +92,11 @@ namespace RobustPredicates.Test
             double[] points =
                 File.ReadAllLines("test_data/simple_data/insphere-points3d.txt")
                 .Select(n => n.Split()).SelectMany(x => x)
-                .Select(s => double.Parse(s)).ToArray();
+                .Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
             double[] results =
                 File.ReadAllLines("test_data/simple_data/results-insphere.txt")
                 .Select(n => n.Split()).SelectMany(x => x)
-                .Select(s => double.Parse(s)).ToArray();
+                .Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
 
             int count = 0;
             for (int i = 0; i < NSimpleData; i += 15)
@@ -116,7 +117,7 @@ namespace RobustPredicates.Test
             double[] points =
               File.ReadAllLines("test_data/pscico_data/insphere3d.txt")
               .Select(n => n.Split()).SelectMany(x => x)
-              .Select(s => double.Parse(s)).ToArray();
+              .Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
 
             for (int i = 0; i < NPscicoData; i += 17)
             {

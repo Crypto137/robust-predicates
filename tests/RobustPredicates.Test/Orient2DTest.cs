@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -33,11 +34,11 @@ namespace RobustPredicates.Test
             double[] points =
               File.ReadAllLines("test_data/simple_data/orient2d-points2d.txt")
               .Select(n => n.Split()).SelectMany(x => x)
-              .Select(s => double.Parse(s)).ToArray();
+              .Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
             double[] results =
              File.ReadAllLines("test_data/simple_data/results-orient2d.txt")
              .Select(n => n.Split()).SelectMany(x => x)
-             .Select(s => double.Parse(s)).ToArray();
+             .Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
 
             int count = 0;
             for (int i = 0; i < NSimpleData; i += 6)
@@ -72,11 +73,11 @@ namespace RobustPredicates.Test
             double[] points =
               File.ReadAllLines("test_data/simple_data/orient2d-points2d.txt")
               .Select(n => n.Split()).SelectMany(x => x)
-              .Select(s => double.Parse(s)).ToArray();
+              .Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
             double[] results =
              File.ReadAllLines("test_data/simple_data/results-orient2d.txt")
              .Select(n => n.Split()).SelectMany(x => x)
-             .Select(s => double.Parse(s)).ToArray();
+             .Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
 
             int count = 0;
             for (int i = 0; i < NSimpleData; i += 6)
@@ -94,7 +95,7 @@ namespace RobustPredicates.Test
             double[] points =
               File.ReadAllLines("test_data/pscico_data/orient2d.txt")
               .Select(n => n.Split()).SelectMany(x => x)
-              .Select(s => double.Parse(s)).ToArray();
+              .Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
 
             for (int i = 0; i < NPscicoData; i += 8)
             {
