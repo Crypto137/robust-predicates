@@ -24,6 +24,14 @@ namespace RobustPredicates
 
         internal static int ScaleExpansionZeroelim(int elen, double[] e, double b, double[] h)
         {
+            Span<double> se = e.AsSpan();
+            Span<double> sh = h.AsSpan();
+
+            return ScaleExpansionZeroelim(elen, ref se, b, ref sh);
+        }
+
+        internal static int ScaleExpansionZeroelim(int elen, ref Span<double> e, double b, ref Span<double> h)
+        {
             MacrosHelpers.Split(b, out double bhi, out double blo);
             MacrosHelpers.TwoProductPresplit(e[0], b, bhi, blo, out double Q, out double hh);
             int hindex = 0;
