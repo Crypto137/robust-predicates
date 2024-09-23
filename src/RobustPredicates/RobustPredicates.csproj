@@ -10,7 +10,7 @@ A port to C# of the robust predicates for computational geomerty code from Jonat
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>modios, Crypto137</Copyright>
     <RepositoryUrl>https://github.com/Crypto137/robust-predicates</RepositoryUrl>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
   </PropertyGroup>
 
 </Project>

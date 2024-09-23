@@ -4,13 +4,7 @@ namespace RobustPredicates
 {
     internal static class ArithmeticFunctions
     {
-        internal static double Estimate(int len, double[] e)
-        {
-            Span<double> se = e.AsSpan();
-            return Estimate(len, ref se);
-        }
-
-        internal static double Estimate(int len, ref Span<double> e)
+        internal static double Estimate(int len, ReadOnlySpan<double> e)
         {
             int eindex;
 
@@ -22,15 +16,7 @@ namespace RobustPredicates
             return Q;
         }
 
-        internal static int ScaleExpansionZeroelim(int elen, double[] e, double b, double[] h)
-        {
-            Span<double> se = e.AsSpan();
-            Span<double> sh = h.AsSpan();
-
-            return ScaleExpansionZeroelim(elen, ref se, b, ref sh);
-        }
-
-        internal static int ScaleExpansionZeroelim(int elen, ref Span<double> e, double b, ref Span<double> h)
+        internal static int ScaleExpansionZeroelim(int elen, Span<double> e, double b, Span<double> h)
         {
             MacrosHelpers.Split(b, out double bhi, out double blo);
             MacrosHelpers.TwoProductPresplit(e[0], b, bhi, blo, out double Q, out double hh);
@@ -61,16 +47,7 @@ namespace RobustPredicates
             return hindex;
         }
 
-        internal static int FastExpansionSumZeroelim(int elen, double[] e, int flen, double[] f, double[] h)
-        {
-            Span<double> se = e.AsSpan();
-            Span<double> sf = f.AsSpan();
-            Span<double> sh = h.AsSpan();
-
-            return FastExpansionSumZeroelim(elen, ref se, flen, ref sf, ref sh);
-        }
-
-        internal static int FastExpansionSumZeroelim(int elen, ref Span<double> e, int flen, ref Span<double> f, ref Span<double> h)
+        internal static int FastExpansionSumZeroelim(int elen, Span<double> e, int flen, Span<double> f, Span<double> h)
         {
             int findex;
             double Q;

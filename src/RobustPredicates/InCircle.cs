@@ -4,17 +4,7 @@ namespace RobustPredicates
 {
     public static class InCircle
     {
-        public static double Fast(double[] pa, double[] pb, double[] pc, double[] pd)
-        {
-            Span<double> spa = pa.AsSpan();
-            Span<double> spb = pb.AsSpan();
-            Span<double> spc = pc.AsSpan();
-            Span<double> spd = pd.AsSpan();
-
-            return Fast(ref spa, ref spb, ref spc, ref spd);
-        }
-
-        public static double Fast(ref Span<double> pa, ref Span<double> pb, ref Span<double> pc, ref Span<double> pd)
+        public static double Fast(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd)
         {
             double adx = pa[0] - pd[0];
             double ady = pa[1] - pd[1];
@@ -33,17 +23,7 @@ namespace RobustPredicates
             return alift * bcdet + blift * cadet + clift * abdet;
         }
 
-        internal static double Exact(double[] pa, double[] pb, double[] pc, double[] pd)
-        {
-            Span<double> spa = pa.AsSpan();
-            Span<double> spb = pb.AsSpan();
-            Span<double> spc = pc.AsSpan();
-            Span<double> spd = pd.AsSpan();
-
-            return Exact(ref spa, ref spb, ref spc, ref spd);
-        }
-
-        internal static double Exact(ref Span<double> pa, ref Span<double> pb, ref Span<double> pc, ref Span<double> pd)
+        internal static double Exact(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd)
         {
             MacrosHelpers.TwoProduct(pa[0], pb[1], out double axby1, out double axby0);
             MacrosHelpers.TwoProduct(pb[0], pa[1], out double bxay1, out double bxay0);
@@ -77,12 +57,12 @@ namespace RobustPredicates
             MacrosHelpers.TwoTwoDiff(bxdy1, bxdy0, dxby1, dxby0, out bd[3], out bd[2], out bd[1], out bd[0]);
 
             Span<double> temp8 = stackalloc double[8];
-            int templen = ArithmeticFunctions.FastExpansionSumZeroelim(4, ref cd, 4, ref da, ref temp8);
+            int templen = ArithmeticFunctions.FastExpansionSumZeroelim(4, cd, 4, da, temp8);
             Span<double> cda = stackalloc double[12];
-            int cdalen = ArithmeticFunctions.FastExpansionSumZeroelim(templen, ref temp8, 4, ref ac, ref cda);
+            int cdalen = ArithmeticFunctions.FastExpansionSumZeroelim(templen, temp8, 4, ac, cda);
             Span<double> dab = stackalloc double[12];
-            templen = ArithmeticFunctions.FastExpansionSumZeroelim(4, ref da, 4, ref ab, ref temp8);
-            int dablen = ArithmeticFunctions.FastExpansionSumZeroelim(templen, ref temp8, 4, ref bd, ref dab);
+            templen = ArithmeticFunctions.FastExpansionSumZeroelim(4, da, 4, ab, temp8);
+            int dablen = ArithmeticFunctions.FastExpansionSumZeroelim(templen, temp8, 4, bd, dab);
 
             for (int i = 0; i < 4; i++)
             {
@@ -91,65 +71,55 @@ namespace RobustPredicates
             }
 
             Span<double> abc = stackalloc double[12];
-            templen = ArithmeticFunctions.FastExpansionSumZeroelim(4, ref ab, 4, ref bc, ref temp8);
-            int abclen = ArithmeticFunctions.FastExpansionSumZeroelim(templen, ref temp8, 4, ref ac, ref abc);
-            templen = ArithmeticFunctions.FastExpansionSumZeroelim(4, ref bc, 4, ref cd, ref temp8);
+            templen = ArithmeticFunctions.FastExpansionSumZeroelim(4, ab, 4, bc, temp8);
+            int abclen = ArithmeticFunctions.FastExpansionSumZeroelim(templen, temp8, 4, ac, abc);
+            templen = ArithmeticFunctions.FastExpansionSumZeroelim(4, bc, 4, cd, temp8);
 
             Span<double> bcd = stackalloc double[12];
-            int bcdlen = ArithmeticFunctions.FastExpansionSumZeroelim(templen, ref temp8, 4, ref bd, ref bcd);
+            int bcdlen = ArithmeticFunctions.FastExpansionSumZeroelim(templen, temp8, 4, bd, bcd);
 
             Span<double> det24x = stackalloc double[24];
-            int xlen = ArithmeticFunctions.ScaleExpansionZeroelim(bcdlen, ref bcd, pa[0], ref det24x);
+            int xlen = ArithmeticFunctions.ScaleExpansionZeroelim(bcdlen, bcd, pa[0], det24x);
             Span<double> det48x = stackalloc double[48];
-            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(xlen, ref det24x, pa[0], ref det48x);
+            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(xlen, det24x, pa[0], det48x);
             Span<double> det24y = stackalloc double[24];
-            int ylen = ArithmeticFunctions.ScaleExpansionZeroelim(bcdlen, ref bcd, pa[1], ref det24y);
+            int ylen = ArithmeticFunctions.ScaleExpansionZeroelim(bcdlen, bcd, pa[1], det24y);
             Span<double> det48y = stackalloc double[48];
-            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(ylen, ref det24y, pa[1], ref det48y);
+            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(ylen, det24y, pa[1], det48y);
             Span<double> adet = stackalloc double[96];
-            int alen = ArithmeticFunctions.FastExpansionSumZeroelim(xlen, ref det48x, ylen, ref det48y, ref adet);
+            int alen = ArithmeticFunctions.FastExpansionSumZeroelim(xlen, det48x, ylen, det48y, adet);
 
-            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(cdalen, ref cda, pb[0], ref det24x);
-            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(xlen, ref det24x, -pb[0], ref det48x);
-            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(cdalen, ref cda, pb[1], ref det24y);
-            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(ylen, ref det24y, -pb[1], ref det48y);
+            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(cdalen, cda, pb[0], det24x);
+            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(xlen, det24x, -pb[0], det48x);
+            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(cdalen, cda, pb[1], det24y);
+            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(ylen, det24y, -pb[1], det48y);
             Span<double> bdet = stackalloc double[96];
-            int blen = ArithmeticFunctions.FastExpansionSumZeroelim(xlen, ref det48x, ylen, ref det48y, ref bdet);
+            int blen = ArithmeticFunctions.FastExpansionSumZeroelim(xlen, det48x, ylen, det48y, bdet);
 
-            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(dablen, ref dab, pc[0], ref det24x);
-            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(xlen, ref det24x, pc[0], ref det48x);
-            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(dablen, ref dab, pc[1], ref det24y);
-            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(ylen, ref det24y, pc[1], ref det48y);
+            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(dablen, dab, pc[0], det24x);
+            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(xlen, det24x, pc[0], det48x);
+            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(dablen, dab, pc[1], det24y);
+            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(ylen, det24y, pc[1], det48y);
             Span<double> cdet = stackalloc double[96];
-            int clen = ArithmeticFunctions.FastExpansionSumZeroelim(xlen, ref det48x, ylen, ref det48y, ref cdet);
+            int clen = ArithmeticFunctions.FastExpansionSumZeroelim(xlen, det48x, ylen, det48y, cdet);
 
-            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(abclen, ref abc, pd[0], ref det24x);
-            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(xlen, ref det24x, -pd[0], ref det48x);
-            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(abclen, ref abc, pd[1], ref det24y);
-            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(ylen, ref det24y, -pd[1], ref det48y);
+            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(abclen, abc, pd[0], det24x);
+            xlen = ArithmeticFunctions.ScaleExpansionZeroelim(xlen, det24x, -pd[0], det48x);
+            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(abclen, abc, pd[1], det24y);
+            ylen = ArithmeticFunctions.ScaleExpansionZeroelim(ylen, det24y, -pd[1], det48y);
             Span<double> ddet = stackalloc double[96];
-            int dlen = ArithmeticFunctions.FastExpansionSumZeroelim(xlen, ref det48x, ylen, ref det48y, ref ddet);
+            int dlen = ArithmeticFunctions.FastExpansionSumZeroelim(xlen, det48x, ylen, det48y, ddet);
 
             Span<double> abdet = stackalloc double[192];
-            int ablen = ArithmeticFunctions.FastExpansionSumZeroelim(alen, ref adet, blen, ref bdet, ref abdet);
+            int ablen = ArithmeticFunctions.FastExpansionSumZeroelim(alen, adet, blen, bdet, abdet);
             Span<double> cddet = stackalloc double[192];
-            int cdlen = ArithmeticFunctions.FastExpansionSumZeroelim(clen, ref cdet, dlen, ref ddet, ref cddet);
+            int cdlen = ArithmeticFunctions.FastExpansionSumZeroelim(clen, cdet, dlen, ddet, cddet);
             Span<double> deter = stackalloc double[384];
-            int deterlen = ArithmeticFunctions.FastExpansionSumZeroelim(ablen, ref abdet, cdlen, ref cddet, ref deter);
+            int deterlen = ArithmeticFunctions.FastExpansionSumZeroelim(ablen, abdet, cdlen, cddet, deter);
             return deter[deterlen - 1];
         }
 
-        private static double Adapt(double[] pa, double[] pb, double[] pc, double[] pd, double permanent)
-        {
-            Span<double> spa = pa.AsSpan();
-            Span<double> spb = pb.AsSpan();
-            Span<double> spc = pc.AsSpan();
-            Span<double> spd = pd.AsSpan();
-
-            return Adapt(ref spa, ref spb, ref spc, ref spd, permanent);
-        }
-
-        private static double Adapt(ref Span<double> pa, ref Span<double> pb, ref Span<double> pc, ref Span<double> pd, double permanent)
+        private static double Adapt(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd, double permanent)
         {
             double adx = pa[0] - pd[0];
             double bdx = pb[0] - pd[0];
@@ -164,15 +134,15 @@ namespace RobustPredicates
             MacrosHelpers.TwoTwoDiff(bdxcdy1, bdxcdy0, cdxbdy1, cdxbdy0, out bc[3], out bc[2], out bc[1], out bc[0]);
 
             Span<double> axbc = stackalloc double[8];
-            int axbclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref bc, adx, ref axbc);
+            int axbclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, bc, adx, axbc);
             Span<double> axxbc = stackalloc double[16];
-            int axxbclen = ArithmeticFunctions.ScaleExpansionZeroelim(axbclen, ref axbc, adx, ref axxbc);
+            int axxbclen = ArithmeticFunctions.ScaleExpansionZeroelim(axbclen, axbc, adx, axxbc);
             Span<double> aybc = stackalloc double[8];
-            int aybclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref bc, ady, ref aybc);
+            int aybclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, bc, ady, aybc);
             Span<double> ayybc = stackalloc double[16];
-            int ayybclen = ArithmeticFunctions.ScaleExpansionZeroelim(aybclen, ref aybc, ady, ref ayybc);
+            int ayybclen = ArithmeticFunctions.ScaleExpansionZeroelim(aybclen, aybc, ady, ayybc);
             Span<double> adet = stackalloc double[32];
-            int alen = ArithmeticFunctions.FastExpansionSumZeroelim(axxbclen, ref axxbc, ayybclen, ref ayybc, ref adet);
+            int alen = ArithmeticFunctions.FastExpansionSumZeroelim(axxbclen, axxbc, ayybclen, ayybc, adet);
 
             MacrosHelpers.TwoProduct(cdx, ady, out double cdxady1, out double cdxady0);
             MacrosHelpers.TwoProduct(adx, cdy, out double adxcdy1, out double adxcdy0);
@@ -180,15 +150,15 @@ namespace RobustPredicates
             MacrosHelpers.TwoTwoDiff(cdxady1, cdxady0, adxcdy1, adxcdy0, out ca[3], out ca[2], out ca[1], out ca[0]);
 
             Span<double> bxca = stackalloc double[8];
-            int bxcalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref ca, bdx, ref bxca);
+            int bxcalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ca, bdx, bxca);
             Span<double> bxxca = stackalloc double[16];
-            int bxxcalen = ArithmeticFunctions.ScaleExpansionZeroelim(bxcalen, ref bxca, bdx, ref bxxca);
+            int bxxcalen = ArithmeticFunctions.ScaleExpansionZeroelim(bxcalen, bxca, bdx, bxxca);
             Span<double> byca = stackalloc double[8];
-            int bycalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref ca, bdy, ref byca);
+            int bycalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ca, bdy, byca);
             Span<double> byyca = stackalloc double[16];
-            int byycalen = ArithmeticFunctions.ScaleExpansionZeroelim(bycalen, ref byca, bdy, ref byyca);
+            int byycalen = ArithmeticFunctions.ScaleExpansionZeroelim(bycalen, byca, bdy, byyca);
             Span<double> bdet = stackalloc double[32];
-            int blen = ArithmeticFunctions.FastExpansionSumZeroelim(bxxcalen, ref bxxca, byycalen, ref byyca, ref bdet);
+            int blen = ArithmeticFunctions.FastExpansionSumZeroelim(bxxcalen, bxxca, byycalen, byyca, bdet);
 
 
 
@@ -198,23 +168,23 @@ namespace RobustPredicates
             MacrosHelpers.TwoTwoDiff(adxbdy1, adxbdy0, bdxady1, bdxady0, out ab[3], out ab[2], out ab[1], out ab[0]);
 
             Span<double> cxab = stackalloc double[8];
-            int cxablen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref ab, cdx, ref cxab);
+            int cxablen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ab, cdx, cxab);
             Span<double> cxxab = stackalloc double[16];
-            int cxxablen = ArithmeticFunctions.ScaleExpansionZeroelim(cxablen, ref cxab, cdx, ref cxxab);
+            int cxxablen = ArithmeticFunctions.ScaleExpansionZeroelim(cxablen, cxab, cdx, cxxab);
 
             Span<double> cyab = stackalloc double[8];
-            int cyablen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref ab, cdy, ref cyab);
+            int cyablen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ab, cdy, cyab);
             Span<double> cyyab = stackalloc double[16];
-            int cyyablen = ArithmeticFunctions.ScaleExpansionZeroelim(cyablen, ref cyab, cdy, ref cyyab);
+            int cyyablen = ArithmeticFunctions.ScaleExpansionZeroelim(cyablen, cyab, cdy, cyyab);
             Span<double> cdet = stackalloc double[32];
-            int clen = ArithmeticFunctions.FastExpansionSumZeroelim(cxxablen, ref cxxab, cyyablen, ref cyyab, ref cdet);
+            int clen = ArithmeticFunctions.FastExpansionSumZeroelim(cxxablen, cxxab, cyyablen, cyyab, cdet);
 
             Span<double> abdet = stackalloc double[64];
-            int ablen = ArithmeticFunctions.FastExpansionSumZeroelim(alen, ref adet, blen, ref bdet, ref abdet);
+            int ablen = ArithmeticFunctions.FastExpansionSumZeroelim(alen, adet, blen, bdet, abdet);
             Span<double> fin1 = stackalloc double[1152];
-            int finlength = ArithmeticFunctions.FastExpansionSumZeroelim(ablen, ref abdet, clen, ref cdet, ref fin1);
+            int finlength = ArithmeticFunctions.FastExpansionSumZeroelim(ablen, abdet, clen, cdet, fin1);
 
-            double det = ArithmeticFunctions.Estimate(finlength, ref fin1);
+            double det = ArithmeticFunctions.Estimate(finlength, fin1);
             double errbound = MacrosHelpers.IccerrboundB * permanent;
 
             if ((det >= errbound) || (-det >= errbound))
@@ -292,22 +262,22 @@ namespace RobustPredicates
             int axtbclen = 0;
             if (adxtail != 0.0)
             {
-                axtbclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref bc, adxtail, ref axtbc);
-                int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbclen, ref axtbc, 2.0 * adx, ref temp16a);
+                axtbclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, bc, adxtail, axtbc);
+                int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbclen, axtbc, 2.0 * adx, temp16a);
                 Span<double> axtcc = stackalloc double[8];
-                int axtcclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref cc, adxtail, ref axtcc);
-                int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(axtcclen, ref axtcc, bdy, ref temp16b);
+                int axtcclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, cc, adxtail, axtcc);
+                int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(axtcclen, axtcc, bdy, temp16b);
                 Span<double> axtbb = stackalloc double[8];
-                int axtbblen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref bb, adxtail, ref axtbb);
-                int temp16clen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbblen, ref axtbb, -cdy, ref temp16c);
+                int axtbblen = ArithmeticFunctions.ScaleExpansionZeroelim(4, bb, adxtail, axtbb);
+                int temp16clen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbblen, axtbb, -cdy, temp16c);
 
-                int temp32alen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                        temp16blen, ref temp16b, ref temp32a);
+                int temp32alen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                        temp16blen, temp16b, temp32a);
 
-                int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16clen, ref temp16c,
-                                                        temp32alen, ref temp32a, ref temp48);
-                finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp48len,
-                                                        ref temp48, ref finother);
+                int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16clen, temp16c,
+                                                        temp32alen, temp32a, temp48);
+                finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
+                                                        temp48, finother);
                 finswap = finnow;
                 finnow = finother;
                 finother = finswap;
@@ -317,20 +287,20 @@ namespace RobustPredicates
             Span<double> aytbc = stackalloc double[8];
             if (adytail != 0.0)
             {
-                aytbclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref bc, adytail, ref aytbc);
-                int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbclen, ref aytbc, 2.0 * ady, ref temp16a);
+                aytbclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, bc, adytail, aytbc);
+                int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbclen, aytbc, 2.0 * ady, temp16a);
                 Span<double> aytbb = stackalloc double[8];
-                int aytbblen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref bb, adytail, ref aytbb);
-                int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbblen, ref aytbb, cdx, ref temp16b);
+                int aytbblen = ArithmeticFunctions.ScaleExpansionZeroelim(4, bb, adytail, aytbb);
+                int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbblen, aytbb, cdx, temp16b);
                 Span<double> aytcc = stackalloc double[8];
-                int aytcclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref cc, adytail, ref aytcc);
-                int temp16clen = ArithmeticFunctions.ScaleExpansionZeroelim(aytcclen, ref aytcc, -bdx, ref temp16c);
-                int temp32alen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                        temp16blen, ref temp16b, ref temp32a);
-                int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16clen, ref temp16c,
-                                                        temp32alen, ref temp32a, ref temp48);
-                finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp48len,
-                                                        ref temp48, ref finother);
+                int aytcclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, cc, adytail, aytcc);
+                int temp16clen = ArithmeticFunctions.ScaleExpansionZeroelim(aytcclen, aytcc, -bdx, temp16c);
+                int temp32alen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                        temp16blen, temp16b, temp32a);
+                int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16clen, temp16c,
+                                                        temp32alen, temp32a, temp48);
+                finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
+                                                        temp48, finother);
                 finswap = finnow;
                 finnow = finother;
                 finother = finswap;
@@ -340,20 +310,20 @@ namespace RobustPredicates
             Span<double> bxtca = stackalloc double[8];
             if (bdxtail != 0.0)
             {
-                bxtcalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref ca, bdxtail, ref bxtca);
-                int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcalen, ref bxtca, 2.0 * bdx, ref temp16a);
+                bxtcalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ca, bdxtail, bxtca);
+                int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcalen, bxtca, 2.0 * bdx, temp16a);
                 Span<double> bxtaa = stackalloc double[8];
-                int bxtaalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref aa, bdxtail, ref bxtaa);
-                int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtaalen, ref bxtaa, cdy, ref temp16b);
+                int bxtaalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, aa, bdxtail, bxtaa);
+                int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtaalen, bxtaa, cdy, temp16b);
                 Span<double> bxtcc = stackalloc double[8];
-                int bxtcclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref cc, bdxtail, ref bxtcc);
-                int temp16clen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcclen, ref bxtcc, -ady, ref temp16c);
-                int temp32alen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                        temp16blen, ref temp16b, ref temp32a);
-                int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16clen, ref temp16c,
-                                                        temp32alen, ref temp32a, ref temp48);
-                finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp48len,
-                                                        ref temp48, ref finother);
+                int bxtcclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, cc, bdxtail, bxtcc);
+                int temp16clen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcclen, bxtcc, -ady, temp16c);
+                int temp32alen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                        temp16blen, temp16b, temp32a);
+                int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16clen, temp16c,
+                                                        temp32alen, temp32a, temp48);
+                finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
+                                                        temp48, finother);
                 finswap = finnow;
                 finnow = finother; 
                 finother = finswap;
@@ -363,23 +333,23 @@ namespace RobustPredicates
             Span<double> bytca = stackalloc double[8];
             if (bdytail != 0.0)
             {
-                bytcalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref ca, bdytail, ref bytca);
-                int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcalen, ref bytca, 2.0 * bdy,
-                                                      ref temp16a);
+                bytcalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ca, bdytail, bytca);
+                int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcalen, bytca, 2.0 * bdy,
+                                                      temp16a);
 
                 Span<double> bytcc = stackalloc double[8];
-                int bytcclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref cc, bdytail, ref bytcc);
-                int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcclen, ref bytcc, adx, ref temp16b);
+                int bytcclen = ArithmeticFunctions.ScaleExpansionZeroelim(4, cc, bdytail, bytcc);
+                int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcclen, bytcc, adx, temp16b);
 
                 Span<double> bytaa = stackalloc double[8];
-                int bytaalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref aa, bdytail, ref bytaa);
-                int temp16clen = ArithmeticFunctions.ScaleExpansionZeroelim(bytaalen, ref bytaa, -cdx, ref temp16c);
-                int temp32alen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                        temp16blen, ref temp16b, ref temp32a);
-                int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16clen, ref temp16c,
-                                                        temp32alen, ref temp32a, ref temp48);
-                finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp48len,
-                                                        ref temp48, ref finother);
+                int bytaalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, aa, bdytail, bytaa);
+                int temp16clen = ArithmeticFunctions.ScaleExpansionZeroelim(bytaalen, bytaa, -cdx, temp16c);
+                int temp32alen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                        temp16blen, temp16b, temp32a);
+                int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16clen, temp16c,
+                                                        temp32alen, temp32a, temp48);
+                finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
+                                                        temp48, finother);
                 finswap = finnow;
                 finnow = finother; 
                 finother = finswap;
@@ -389,22 +359,22 @@ namespace RobustPredicates
             Span<double> cxtab = stackalloc double[8];
             if (cdxtail != 0.0)
             {
-                cxtablen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref ab, cdxtail, ref cxtab);
-                var temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtablen, ref cxtab, 2.0 * cdx,
-                                                      ref temp16a);
+                cxtablen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ab, cdxtail, cxtab);
+                var temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtablen, cxtab, 2.0 * cdx,
+                                                      temp16a);
                 Span<double> cxtbb = stackalloc double[8];
-                int cxtbblen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref bb, cdxtail, ref cxtbb);
-                int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtbblen, ref cxtbb, ady, ref temp16b);
+                int cxtbblen = ArithmeticFunctions.ScaleExpansionZeroelim(4, bb, cdxtail, cxtbb);
+                int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtbblen, cxtbb, ady, temp16b);
                 Span<double> cxtaa = stackalloc double[8];
-                int cxtaalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref aa, cdxtail, ref cxtaa);
-                int temp16clen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtaalen, ref cxtaa, -bdy, ref temp16c);
+                int cxtaalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, aa, cdxtail, cxtaa);
+                int temp16clen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtaalen, cxtaa, -bdy, temp16c);
 
-                int temp32alen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                        temp16blen, ref temp16b, ref temp32a);
-                int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16clen, ref temp16c,
-                                                        temp32alen, ref temp32a, ref temp48);
-                finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp48len,
-                                                        ref temp48, ref finother);
+                int temp32alen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                        temp16blen, temp16b, temp32a);
+                int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16clen, temp16c,
+                                                        temp32alen, temp32a, temp48);
+                finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
+                                                        temp48, finother);
                 finswap = finnow;
                 finnow = finother; 
                 finother = finswap;
@@ -414,24 +384,24 @@ namespace RobustPredicates
             Span<double> cytab = stackalloc double[8];
             if (cdytail != 0.0)
             {
-                cytablen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref ab, cdytail, ref cytab);
-                int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(cytablen, ref cytab, 2.0 * cdy,
-                                                      ref temp16a);
+                cytablen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ab, cdytail, cytab);
+                int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(cytablen, cytab, 2.0 * cdy,
+                                                      temp16a);
 
                 Span<double> cytaa = stackalloc double[8];
-                int cytaalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref aa, cdytail, ref cytaa);
-                int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(cytaalen, ref cytaa, bdx, ref temp16b);
+                int cytaalen = ArithmeticFunctions.ScaleExpansionZeroelim(4, aa, cdytail, cytaa);
+                int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(cytaalen, cytaa, bdx, temp16b);
 
                 Span<double> cytbb = stackalloc double[8];
-                int cytbblen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref bb, cdytail, ref cytbb);
-                int temp16clen = ArithmeticFunctions.ScaleExpansionZeroelim(cytbblen, ref cytbb, -adx, ref temp16c);
+                int cytbblen = ArithmeticFunctions.ScaleExpansionZeroelim(4, bb, cdytail, cytbb);
+                int temp16clen = ArithmeticFunctions.ScaleExpansionZeroelim(cytbblen, cytbb, -adx, temp16c);
 
-                int temp32alen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                        temp16blen, ref temp16b, ref temp32a);
-                int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16clen, ref temp16c,
-                                                        temp32alen, ref temp32a, ref temp48);
-                finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp48len,
-                                                        ref temp48, ref finother);
+                int temp32alen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                        temp16blen, temp16b, temp32a);
+                int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16clen, temp16c,
+                                                        temp32alen, temp32a, temp48);
+                finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
+                                                        temp48, finother);
                 finswap = finnow;
                 finnow = finother;
                 finother = finswap;
@@ -458,7 +428,7 @@ namespace RobustPredicates
                     MacrosHelpers.TwoProduct(cdx, negate, out tj1, out tj0);
 
                     MacrosHelpers.TwoTwoSum(ti1, ti0, tj1, tj0, out v[3], out v[2], out v[1], out v[0]);
-                    bctlen = ArithmeticFunctions.FastExpansionSumZeroelim(4, ref u, 4, ref v, ref bct);
+                    bctlen = ArithmeticFunctions.FastExpansionSumZeroelim(4, u, 4, v, bct);
 
                     MacrosHelpers.TwoProduct(bdxtail, cdytail, out ti1, out ti0);
                     MacrosHelpers.TwoProduct(cdxtail, bdytail, out tj1, out tj0);
@@ -476,55 +446,55 @@ namespace RobustPredicates
                 Span<double> temp8 = stackalloc double[8];
                 if (adxtail != 0.0)
                 {
-                    int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbclen, ref axtbc, adxtail, ref temp16a);
+                    int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbclen, axtbc, adxtail, temp16a);
                     Span<double> axtbct = stackalloc double[16];
-                    int axtbctlen = ArithmeticFunctions.ScaleExpansionZeroelim(bctlen, ref bct, adxtail, ref axtbct);
-                    int temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbctlen, ref axtbct, 2.0 * adx,
-                                                          ref temp32a);
-                    int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                            temp32alen, ref temp32a, ref temp48);
-                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp48len,
-                                                            ref temp48, ref finother);
+                    int axtbctlen = ArithmeticFunctions.ScaleExpansionZeroelim(bctlen, bct, adxtail, axtbct);
+                    int temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbctlen, axtbct, 2.0 * adx,
+                                                          temp32a);
+                    int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                            temp32alen, temp32a, temp48);
+                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
+                                                            temp48, finother);
                     finswap = finnow; 
                     finnow = finother;
                     finother = finswap;
                     if (bdytail != 0.0)
                     {
-                        int temp8len = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref cc, adxtail, ref temp8);
-                        temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(temp8len, ref temp8, bdytail,
-                                                              ref temp16a);
-                        finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp16alen,
-                                                                ref temp16a, ref finother);
+                        int temp8len = ArithmeticFunctions.ScaleExpansionZeroelim(4, cc, adxtail, temp8);
+                        temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(temp8len, temp8, bdytail,
+                                                              temp16a);
+                        finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp16alen,
+                                                                temp16a, finother);
                         finswap = finnow;
                         finnow = finother; 
                         finother = finswap;
                     }
                     if (cdytail != 0.0)
                     {
-                        int temp8len = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref bb, -adxtail, ref temp8);
-                        temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(temp8len, ref temp8, cdytail,
-                                                              ref temp16a);
-                        finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp16alen,
-                                                                ref temp16a, ref finother);
+                        int temp8len = ArithmeticFunctions.ScaleExpansionZeroelim(4, bb, -adxtail, temp8);
+                        temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(temp8len, temp8, cdytail,
+                                                              temp16a);
+                        finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp16alen,
+                                                                temp16a, finother);
                         finswap = finnow;
                         finnow = finother;
                         finother = finswap;
                     }
 
-                    temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbctlen, ref axtbct, adxtail,
-                                                          ref temp32a);
+                    temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbctlen, axtbct, adxtail,
+                                                          temp32a);
                     Span<double> axtbctt = stackalloc double[8];
-                    int axtbcttlen = ArithmeticFunctions.ScaleExpansionZeroelim(bcttlen, ref bctt, adxtail, ref axtbctt);
-                    temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbcttlen, ref axtbctt, 2.0 * adx,
-                                                          ref temp16a);
-                    int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbcttlen, ref axtbctt, adxtail,
-                                                          ref temp16b);
-                    int temp32blen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                            temp16blen, ref temp16b, ref temp32b);
-                    int temp64len = ArithmeticFunctions.FastExpansionSumZeroelim(temp32alen, ref temp32a,
-                                                            temp32blen, ref temp32b, ref temp64);
-                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp64len,
-                                                            ref temp64, ref finother);
+                    int axtbcttlen = ArithmeticFunctions.ScaleExpansionZeroelim(bcttlen, bctt, adxtail, axtbctt);
+                    temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbcttlen, axtbctt, 2.0 * adx,
+                                                          temp16a);
+                    int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(axtbcttlen, axtbctt, adxtail,
+                                                          temp16b);
+                    int temp32blen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                            temp16blen, temp16b, temp32b);
+                    int temp64len = ArithmeticFunctions.FastExpansionSumZeroelim(temp32alen, temp32a,
+                                                            temp32blen, temp32b, temp64);
+                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp64len,
+                                                            temp64, finother);
                     finswap = finnow;
                     finnow = finother;
                     finother = finswap;
@@ -532,33 +502,33 @@ namespace RobustPredicates
                 if (adytail != 0.0)
                 {
                     Span<double> aytbct = stackalloc double[16];
-                    int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbclen, ref aytbc, adytail, ref temp16a);
-                    int aytbctlen = ArithmeticFunctions.ScaleExpansionZeroelim(bctlen, ref bct, adytail, ref aytbct);
-                    int temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbctlen, ref aytbct, 2.0 * ady,
-                                                          ref temp32a);
-                    int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                            temp32alen, ref temp32a, ref temp48);
-                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp48len,
-                                                            ref temp48, ref finother);
+                    int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbclen, aytbc, adytail, temp16a);
+                    int aytbctlen = ArithmeticFunctions.ScaleExpansionZeroelim(bctlen, bct, adytail, aytbct);
+                    int temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbctlen, aytbct, 2.0 * ady,
+                                                          temp32a);
+                    int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                            temp32alen, temp32a, temp48);
+                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
+                                                            temp48, finother);
 
                     finswap = finnow;
                     finnow = finother;
                     finother = finswap;
 
-                    temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbctlen, ref aytbct, adytail,
-                                                          ref temp32a);
+                    temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbctlen, aytbct, adytail,
+                                                          temp32a);
                     Span<double> aytbctt = stackalloc double[16];
-                    int aytbcttlen = ArithmeticFunctions.ScaleExpansionZeroelim(bcttlen, ref bctt, adytail, ref aytbctt);
-                    temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbcttlen, ref aytbctt, 2.0 * ady,
-                                                          ref temp16a);
-                    int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbcttlen, ref aytbctt, adytail,
-                                                          ref temp16b);
-                    int temp32blen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                            temp16blen, ref temp16b, ref temp32b);
-                    int temp64len = ArithmeticFunctions.FastExpansionSumZeroelim(temp32alen, ref temp32a,
-                                                            temp32blen, ref temp32b, ref temp64);
-                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp64len,
-                                                            ref temp64, ref finother);
+                    int aytbcttlen = ArithmeticFunctions.ScaleExpansionZeroelim(bcttlen, bctt, adytail, aytbctt);
+                    temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbcttlen, aytbctt, 2.0 * ady,
+                                                          temp16a);
+                    int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(aytbcttlen, aytbctt, adytail,
+                                                          temp16b);
+                    int temp32blen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                            temp16blen, temp16b, temp32b);
+                    int temp64len = ArithmeticFunctions.FastExpansionSumZeroelim(temp32alen, temp32a,
+                                                            temp32blen, temp32b, temp64);
+                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp64len,
+                                                            temp64, finother);
                     finswap = finnow; 
                     finnow = finother;
                     finother = finswap;
@@ -584,7 +554,7 @@ namespace RobustPredicates
                     MacrosHelpers.TwoProduct(adx, negate, out tj1, out tj0);
                     MacrosHelpers.TwoTwoSum(ti1, ti0, tj1, tj0, out v[3], out v[2], out v[1], out v[0]);
 
-                    catlen = ArithmeticFunctions.FastExpansionSumZeroelim(4, ref u, 4, ref v, ref cat);
+                    catlen = ArithmeticFunctions.FastExpansionSumZeroelim(4, u, 4, v, cat);
 
                     MacrosHelpers.TwoProduct(cdxtail, adytail, out ti1, out ti0);
                     MacrosHelpers.TwoProduct(adxtail, cdytail, out tj1, out tj0);
@@ -604,53 +574,53 @@ namespace RobustPredicates
                 Span<double> bxtcatt = stackalloc double[8];
                 if (bdxtail != 0.0)
                 {
-                    int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcalen, ref bxtca, bdxtail, ref temp16a);
-                    int bxtcatlen = ArithmeticFunctions.ScaleExpansionZeroelim(catlen, ref cat, bdxtail, ref bxtcat);
-                    int temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcatlen, ref bxtcat, 2.0 * bdx,
-                                                          ref temp32a);
-                    int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                             temp32alen, ref temp32a, ref temp48);
-                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp48len,
-                                                            ref temp48, ref finother);
+                    int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcalen, bxtca, bdxtail, temp16a);
+                    int bxtcatlen = ArithmeticFunctions.ScaleExpansionZeroelim(catlen, cat, bdxtail, bxtcat);
+                    int temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcatlen, bxtcat, 2.0 * bdx,
+                                                          temp32a);
+                    int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                             temp32alen, temp32a, temp48);
+                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
+                                                            temp48, finother);
                     finswap = finnow;
                     finnow = finother;
                     finother = finswap;
                     if (cdytail != 0.0)
                     {
-                        int temp8len = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref aa, bdxtail, ref temp8);
-                        temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(temp8len, ref temp8, cdytail,
-                                                              ref temp16a);
-                        finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp16alen,
-                                                                ref temp16a, ref finother);
+                        int temp8len = ArithmeticFunctions.ScaleExpansionZeroelim(4, aa, bdxtail, temp8);
+                        temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(temp8len, temp8, cdytail,
+                                                              temp16a);
+                        finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp16alen,
+                                                                temp16a, finother);
                         finswap = finnow;
                         finnow = finother;
                         finother = finswap;
                     }
                     if (adytail != 0.0)
                     {
-                        int temp8len = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref cc, -bdxtail, ref temp8);
-                        temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(temp8len, ref temp8, adytail,
-                                                              ref temp16a);
-                        finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp16alen,
-                                                                ref temp16a, ref finother);
+                        int temp8len = ArithmeticFunctions.ScaleExpansionZeroelim(4, cc, -bdxtail, temp8);
+                        temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(temp8len, temp8, adytail,
+                                                              temp16a);
+                        finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp16alen,
+                                                                temp16a, finother);
                         finswap = finnow; 
                         finnow = finother;
                         finother = finswap;
                     }
 
-                    temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcatlen, ref bxtcat, bdxtail,
-                                                          ref temp32a);
-                    int bxtcattlen = ArithmeticFunctions.ScaleExpansionZeroelim(cattlen, ref catt, bdxtail, ref bxtcatt);
-                    temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcattlen, ref bxtcatt, 2.0 * bdx,
-                                                          ref temp16a);
-                    int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcattlen, ref bxtcatt, bdxtail,
-                                                          ref temp16b);
-                    int temp32blen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                            temp16blen, ref temp16b, ref temp32b);
-                    int temp64len = ArithmeticFunctions.FastExpansionSumZeroelim(temp32alen, ref temp32a,
-                                                            temp32blen, ref temp32b, ref temp64);
-                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp64len,
-                                                            ref temp64, ref finother);
+                    temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcatlen, bxtcat, bdxtail,
+                                                          temp32a);
+                    int bxtcattlen = ArithmeticFunctions.ScaleExpansionZeroelim(cattlen, catt, bdxtail, bxtcatt);
+                    temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcattlen, bxtcatt, 2.0 * bdx,
+                                                          temp16a);
+                    int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(bxtcattlen, bxtcatt, bdxtail,
+                                                          temp16b);
+                    int temp32blen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                            temp16blen, temp16b, temp32b);
+                    int temp64len = ArithmeticFunctions.FastExpansionSumZeroelim(temp32alen, temp32a,
+                                                            temp32blen, temp32b, temp64);
+                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp64len,
+                                                            temp64, finother);
                     finswap = finnow;
                     finnow = finother;
                     finother = finswap;
@@ -659,32 +629,32 @@ namespace RobustPredicates
                 Span<double> bytcatt = stackalloc double[8];
                 if (bdytail != 0.0)
                 {
-                    int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcalen, ref bytca, bdytail, ref temp16a);
-                    int bytcatlen = ArithmeticFunctions.ScaleExpansionZeroelim(catlen, ref cat, bdytail, ref bytcat);
-                    int temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcatlen, ref bytcat, 2.0 * bdy,
-                                                          ref temp32a);
-                    int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                            temp32alen, ref temp32a, ref temp48);
-                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp48len,
-                                                            ref temp48, ref finother);
+                    int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcalen, bytca, bdytail, temp16a);
+                    int bytcatlen = ArithmeticFunctions.ScaleExpansionZeroelim(catlen, cat, bdytail, bytcat);
+                    int temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcatlen, bytcat, 2.0 * bdy,
+                                                          temp32a);
+                    int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                            temp32alen, temp32a, temp48);
+                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
+                                                            temp48, finother);
                     finswap = finnow;
                     finnow = finother; 
                     finother = finswap;
 
 
-                    temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcatlen, ref bytcat, bdytail,
-                                                          ref temp32a);
-                    int bytcattlen = ArithmeticFunctions.ScaleExpansionZeroelim(cattlen, ref catt, bdytail, ref bytcatt);
-                    temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcattlen, ref bytcatt, 2.0 * bdy,
-                                                          ref temp16a);
-                    int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcattlen, ref bytcatt, bdytail,
-                                                          ref temp16b);
-                    int temp32blen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                            temp16blen, ref temp16b, ref temp32b);
-                    int temp64len = ArithmeticFunctions.FastExpansionSumZeroelim(temp32alen, ref temp32a,
-                                                            temp32blen, ref temp32b, ref temp64);
-                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp64len,
-                                                            ref temp64, ref finother);
+                    temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcatlen, bytcat, bdytail,
+                                                          temp32a);
+                    int bytcattlen = ArithmeticFunctions.ScaleExpansionZeroelim(cattlen, catt, bdytail, bytcatt);
+                    temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcattlen, bytcatt, 2.0 * bdy,
+                                                          temp16a);
+                    int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(bytcattlen, bytcatt, bdytail,
+                                                          temp16b);
+                    int temp32blen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                            temp16blen, temp16b, temp32b);
+                    int temp64len = ArithmeticFunctions.FastExpansionSumZeroelim(temp32alen, temp32a,
+                                                            temp32blen, temp32b, temp64);
+                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp64len,
+                                                            temp64, finother);
                     finswap = finnow;
                     finnow = finother;
                     finother = finswap;
@@ -707,7 +677,7 @@ namespace RobustPredicates
                     negate = -adytail;
                     MacrosHelpers.TwoProduct(bdx, negate, out tj1, out tj0);
                     MacrosHelpers.TwoTwoSum(ti1, ti0, tj1, tj0, out v[3], out v[2], out v[1], out v[0]);
-                    abtlen = ArithmeticFunctions.FastExpansionSumZeroelim(4, ref u, 4, ref v, ref abt);
+                    abtlen = ArithmeticFunctions.FastExpansionSumZeroelim(4, u, 4, v, abt);
 
                     MacrosHelpers.TwoProduct(adxtail, bdytail, out ti1, out ti0);
                     MacrosHelpers.TwoProduct(bdxtail, adytail, out tj1, out tj0);
@@ -727,54 +697,54 @@ namespace RobustPredicates
                 Span<double> cxtabtt = stackalloc double[8];
                 if (cdxtail != 0.0)
                 {
-                    int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtablen, ref cxtab, cdxtail, ref temp16a);
-                    int cxtabtlen = ArithmeticFunctions.ScaleExpansionZeroelim(abtlen, ref abt, cdxtail, ref cxtabt);
-                    int temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtabtlen, ref cxtabt, 2.0 * cdx,
-                                                          ref temp32a);
-                    int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                            temp32alen, ref temp32a, ref temp48);
-                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp48len,
-                                                            ref temp48, ref finother);
+                    int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtablen, cxtab, cdxtail, temp16a);
+                    int cxtabtlen = ArithmeticFunctions.ScaleExpansionZeroelim(abtlen, abt, cdxtail, cxtabt);
+                    int temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtabtlen, cxtabt, 2.0 * cdx,
+                                                          temp32a);
+                    int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                            temp32alen, temp32a, temp48);
+                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
+                                                            temp48, finother);
                     finswap = finnow;
                     finnow = finother;
                     finother = finswap;
 
                     if (adytail != 0.0)
                     {
-                        int temp8len = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref bb, cdxtail, ref temp8);
-                        temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(temp8len, ref temp8, adytail,
-                                                              ref temp16a);
-                        finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp16alen,
-                                                                ref temp16a, ref finother);
+                        int temp8len = ArithmeticFunctions.ScaleExpansionZeroelim(4, bb, cdxtail, temp8);
+                        temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(temp8len, temp8, adytail,
+                                                              temp16a);
+                        finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp16alen,
+                                                                temp16a, finother);
                         finswap = finnow; 
                         finnow = finother; 
                         finother = finswap;
                     }
                     if (bdytail != 0.0)
                     {
-                        int temp8len = ArithmeticFunctions.ScaleExpansionZeroelim(4, ref aa, -cdxtail, ref temp8);
-                        temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(temp8len, ref temp8, bdytail,
-                                                              ref temp16a);
-                        finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp16alen,
-                                                                ref temp16a, ref finother);
+                        int temp8len = ArithmeticFunctions.ScaleExpansionZeroelim(4, aa, -cdxtail, temp8);
+                        temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(temp8len, temp8, bdytail,
+                                                              temp16a);
+                        finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp16alen,
+                                                                temp16a, finother);
                         finswap = finnow; 
                         finnow = finother; 
                         finother = finswap;
                     }
 
-                    temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtabtlen, ref cxtabt, cdxtail,
-                                                          ref temp32a);
-                    int cxtabttlen = ArithmeticFunctions.ScaleExpansionZeroelim(abttlen, ref abtt, cdxtail, ref cxtabtt);
-                    temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtabttlen, ref cxtabtt, 2.0 * cdx,
-                                                          ref temp16a);
-                    int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtabttlen, ref cxtabtt, cdxtail,
-                                                          ref temp16b);
-                    int temp32blen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                            temp16blen, ref temp16b, ref temp32b);
-                    int temp64len = ArithmeticFunctions.FastExpansionSumZeroelim(temp32alen, ref temp32a,
-                                                            temp32blen, ref temp32b, ref temp64);
-                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp64len,
-                                                            ref temp64, ref finother);
+                    temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtabtlen, cxtabt, cdxtail,
+                                                          temp32a);
+                    int cxtabttlen = ArithmeticFunctions.ScaleExpansionZeroelim(abttlen, abtt, cdxtail, cxtabtt);
+                    temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtabttlen, cxtabtt, 2.0 * cdx,
+                                                          temp16a);
+                    int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(cxtabttlen, cxtabtt, cdxtail,
+                                                          temp16b);
+                    int temp32blen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                            temp16blen, temp16b, temp32b);
+                    int temp64len = ArithmeticFunctions.FastExpansionSumZeroelim(temp32alen, temp32a,
+                                                            temp32blen, temp32b, temp64);
+                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp64len,
+                                                            temp64, finother);
                     finswap = finnow; 
                     finnow = finother; 
                     finother = finswap;
@@ -784,30 +754,30 @@ namespace RobustPredicates
                 Span<double> cytabtt = stackalloc double[8];
                 if (cdytail != 0.0)
                 {
-                    int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(cytablen, ref cytab, cdytail, ref temp16a);
-                    int cytabtlen = ArithmeticFunctions.ScaleExpansionZeroelim(abtlen, ref abt, cdytail, ref cytabt);
-                    int temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(cytabtlen, ref cytabt, 2.0 * cdy,
-                                                          ref temp32a);
-                    int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                            temp32alen, ref temp32a, ref temp48);
-                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp48len,
-                                                            ref temp48, ref finother);
+                    int temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(cytablen, cytab, cdytail, temp16a);
+                    int cytabtlen = ArithmeticFunctions.ScaleExpansionZeroelim(abtlen, abt, cdytail, cytabt);
+                    int temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(cytabtlen, cytabt, 2.0 * cdy,
+                                                          temp32a);
+                    int temp48len = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                            temp32alen, temp32a, temp48);
+                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
+                                                            temp48, finother);
                     finswap = finnow; finnow = finother; finother = finswap;
 
 
-                    temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(cytabtlen, ref cytabt, cdytail,
-                                                          ref temp32a);
-                    int cytabttlen = ArithmeticFunctions.ScaleExpansionZeroelim(abttlen, ref abtt, cdytail, ref cytabtt);
-                    temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(cytabttlen, ref cytabtt, 2.0 * cdy,
-                                                          ref temp16a);
-                    int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(cytabttlen, ref cytabtt, cdytail,
-                                                          ref temp16b);
-                    int temp32blen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, ref temp16a,
-                                                            temp16blen, ref temp16b, ref temp32b);
-                    int temp64len = ArithmeticFunctions.FastExpansionSumZeroelim(temp32alen, ref temp32a,
-                                                            temp32blen, ref temp32b, ref temp64);
-                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, ref finnow, temp64len,
-                                                            ref temp64, ref finother);
+                    temp32alen = ArithmeticFunctions.ScaleExpansionZeroelim(cytabtlen, cytabt, cdytail,
+                                                          temp32a);
+                    int cytabttlen = ArithmeticFunctions.ScaleExpansionZeroelim(abttlen, abtt, cdytail, cytabtt);
+                    temp16alen = ArithmeticFunctions.ScaleExpansionZeroelim(cytabttlen, cytabtt, 2.0 * cdy,
+                                                          temp16a);
+                    int temp16blen = ArithmeticFunctions.ScaleExpansionZeroelim(cytabttlen, cytabtt, cdytail,
+                                                          temp16b);
+                    int temp32blen = ArithmeticFunctions.FastExpansionSumZeroelim(temp16alen, temp16a,
+                                                            temp16blen, temp16b, temp32b);
+                    int temp64len = ArithmeticFunctions.FastExpansionSumZeroelim(temp32alen, temp32a,
+                                                            temp32blen, temp32b, temp64);
+                    finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp64len,
+                                                            temp64, finother);
                     finswap = finnow; 
                     finnow = finother; 
                     finother = finswap;
@@ -817,17 +787,7 @@ namespace RobustPredicates
             return finnow[finlength - 1];
         }
 
-        public static double Robust(double[] pa, double[] pb, double[] pc, double[] pd)
-        {
-            Span<double> spa = pa.AsSpan();
-            Span<double> spb = pb.AsSpan();
-            Span<double> spc = pc.AsSpan();
-            Span<double> spd = pd.AsSpan();
-
-            return Robust(ref spa, ref spb, ref spc, ref spd);
-        }
-
-        public static double Robust(ref Span<double> pa, ref Span<double> pb, ref Span<double> pc, ref Span<double> pd)
+        public static double Robust(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd)
         {
             double adx = pa[0] - pd[0];
             double bdx = pb[0] - pd[0];
@@ -862,7 +822,7 @@ namespace RobustPredicates
                 return det;
             }
 
-            return Adapt(ref pa, ref pb, ref pc, ref pd, permanent);
+            return Adapt(pa, pb, pc, pd, permanent);
         }
     }
 }

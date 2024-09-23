@@ -4,16 +4,7 @@ namespace RobustPredicates
 {
     public static class Orient2D
     {
-        private static double Adapt(double[] pa, double[] pb, double[] pc, double detsum)
-        {
-            Span<double> spa = pa.AsSpan();
-            Span<double> spb = pb.AsSpan();
-            Span<double> spc = pc.AsSpan();
-
-            return Adapt(ref spa, ref spb, ref spc, detsum);
-        }
-
-        private static double Adapt(ref Span<double> pa, ref Span<double> pb, ref Span<double> pc, double detsum)
+        private static double Adapt(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, double detsum)
         {
             double acx = pa[0] - pc[0];
             double bcx = pb[0] - pc[0];
@@ -25,7 +16,7 @@ namespace RobustPredicates
             Span<double> B = stackalloc double[4];
             MacrosHelpers.TwoTwoDiff(detleft, detlefttail, detright, detrighttail, out B[3], out B[2], out B[1], out B[0]);
 
-            double det = ArithmeticFunctions.Estimate(4, ref B);
+            double det = ArithmeticFunctions.Estimate(4, B);
             double errbound = MacrosHelpers.CcwerrboundB * detsum;
             if ((det >= errbound) || (-det >= errbound))
             {
@@ -57,34 +48,25 @@ namespace RobustPredicates
             MacrosHelpers.TwoTwoDiff(s1, s0, t1, t0, out u[3], out u[2], out u[1], out u[0]);
 
             Span<double> C1 = stackalloc double[8];
-            int C1length = ArithmeticFunctions.FastExpansionSumZeroelim(4, ref B, 4, ref u, ref C1);
+            int C1length = ArithmeticFunctions.FastExpansionSumZeroelim(4, B, 4, u, C1);
 
             MacrosHelpers.TwoProduct(acx, bcytail, out s1, out s0);
             MacrosHelpers.TwoProduct(acy, bcxtail, out t1, out t0);
             MacrosHelpers.TwoTwoDiff(s1, s0, t1, t0, out u[3], out u[2], out u[1], out u[0]);
             Span<double> C2 = stackalloc double[12];
-            int C2length = ArithmeticFunctions.FastExpansionSumZeroelim(C1length, ref C1, 4, ref u, ref C2);
+            int C2length = ArithmeticFunctions.FastExpansionSumZeroelim(C1length, C1, 4, u, C2);
 
             MacrosHelpers.TwoProduct(acxtail, bcytail, out s1, out s0);
             MacrosHelpers.TwoProduct(acytail, bcxtail, out t1, out t0);
             MacrosHelpers.TwoTwoDiff(s1, s0, t1, t0, out u[3], out u[2], out u[1], out u[0]);
 
             Span<double> D = stackalloc double[16];
-            int Dlength = ArithmeticFunctions.FastExpansionSumZeroelim(C2length, ref C2, 4, ref u, ref D);
+            int Dlength = ArithmeticFunctions.FastExpansionSumZeroelim(C2length, C2, 4, u, D);
 
             return D[Dlength - 1];
         }
 
-        public static double Fast(double[] pa, double[] pb, double[] pc)
-        {
-            Span<double> spa = pa.AsSpan();
-            Span<double> spb = pb.AsSpan();
-            Span<double> spc = pc.AsSpan();
-
-            return Fast(ref spa, ref spb, ref spc);
-        }
-
-        public static double Fast(ref Span<double> pa, ref Span<double> pb, ref Span<double> pc)
+        public static double Fast(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc)
         {
             double acx = pa[0] - pc[0];
             double bcx = pb[0] - pc[0];
@@ -93,16 +75,7 @@ namespace RobustPredicates
             return acx * bcy - acy * bcx;
         }
 
-        internal static double Exact(double[] pa, double[] pb, double[] pc)
-        {
-            Span<double> spa = pa.AsSpan();
-            Span<double> spb = pb.AsSpan();
-            Span<double> spc = pc.AsSpan();
-
-            return Exact(ref spa, ref spb, ref spc);
-        }
-
-        internal static double Exact(ref Span<double> pa, ref Span<double> pb, ref Span<double> pc)
+        internal static double Exact(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc)
         {
             MacrosHelpers.TwoProduct(pa[0], pb[1], out double axby1, out double axby0);
             MacrosHelpers.TwoProduct(pa[0], pc[1], out double axcy1, out double axcy0);
@@ -124,22 +97,13 @@ namespace RobustPredicates
 
             Span<double> v = stackalloc double[8];
             Span<double> w = stackalloc double[12];
-            int vlen = ArithmeticFunctions.FastExpansionSumZeroelim(4, ref aterms, 4, ref bterms, ref v);
-            int wlength = ArithmeticFunctions.FastExpansionSumZeroelim(vlen, ref v, 4, ref cterms, ref w);
+            int vlen = ArithmeticFunctions.FastExpansionSumZeroelim(4, aterms, 4, bterms, v);
+            int wlength = ArithmeticFunctions.FastExpansionSumZeroelim(vlen, v, 4, cterms, w);
 
             return w[wlength - 1];
         }
 
-        internal static double Slow(double[] pa, double[] pb, double[] pc)
-        {
-            Span<double> spa = pa.AsSpan();
-            Span<double> spb = pb.AsSpan();
-            Span<double> spc = pc.AsSpan();
-
-            return Slow(ref spa, ref spb, ref spc);
-        }
-
-        internal static double Slow(ref Span<double> pa, ref Span<double> pb, ref Span<double> pc)
+        internal static double Slow(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc)
         {
             MacrosHelpers.TwoDiff(pa[0], pc[0], out double acx, out double acxtail);
             MacrosHelpers.TwoDiff(pa[1], pc[1], out double acy, out double acytail);
@@ -158,21 +122,12 @@ namespace RobustPredicates
                             out bxay[3], out bxay[2], out bxay[1], out bxay[0]);
 
             Span<double> deter = stackalloc double[16];
-            int deterlen = ArithmeticFunctions.FastExpansionSumZeroelim(8, ref axby, 8, ref bxay, ref deter);
+            int deterlen = ArithmeticFunctions.FastExpansionSumZeroelim(8, axby, 8, bxay, deter);
 
             return deter[deterlen - 1];
         }
 
-        public static double Robust(double[] pa, double[] pb, double[] pc)
-        {
-            Span<double> spa = pa.AsSpan();
-            Span<double> spb = pb.AsSpan();
-            Span<double> spc = pc.AsSpan();
-
-            return Robust(ref spa, ref spb, ref spc);
-        }
-
-        public static double Robust(ref Span<double> pa, ref Span<double> pb, ref Span<double> pc)
+        public static double Robust(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc)
         {
             double detleft = (pa[0] - pc[0]) * (pb[1] - pc[1]);
             double detright = (pa[1] - pc[1]) * (pb[0] - pc[0]);
@@ -212,7 +167,7 @@ namespace RobustPredicates
                 return det;
             }
 
-            return Adapt(ref pa, ref pb, ref pc, detsum);
+            return Adapt(pa, pb, pc, detsum);
         }
     }
 }
