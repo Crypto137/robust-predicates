@@ -1,10 +1,11 @@
-﻿using System;
-
-namespace RobustPredicates
+﻿namespace RobustPredicates
 {
     internal static class ArithmeticFunctions
     {
-        internal static double Estimate(int len, ReadOnlySpan<double> e)
+        /// <summary>
+        /// Produce a one-word estimate of an expansion's value.
+        /// </summary>
+        internal static unsafe double Estimate(int len, double* e)
         {
             int eindex;
 
@@ -16,7 +17,10 @@ namespace RobustPredicates
             return Q;
         }
 
-        internal static int ScaleExpansionZeroelim(int elen, Span<double> e, double b, Span<double> h)
+        /// <summary>
+        /// Multiply an expansion by a scalar, eliminating zero components from the output expansion. Sets h = be.
+        /// </summary>
+        internal static unsafe int ScaleExpansionZeroelim(int elen, double* e, double b, double* h)
         {
             MacrosHelpers.Split(b, out double bhi, out double blo);
             MacrosHelpers.TwoProductPresplit(e[0], b, bhi, blo, out double Q, out double hh);
@@ -47,7 +51,10 @@ namespace RobustPredicates
             return hindex;
         }
 
-        internal static int FastExpansionSumZeroelim(int elen, Span<double> e, int flen, Span<double> f, Span<double> h)
+        /// <summary>
+        /// Sum two expansions, eliminating zero components from the output expansion. Sets h = e + f.
+        /// </summary>
+        internal static unsafe int FastExpansionSumZeroelim(int elen, double* e, int flen, double* f, double* h)
         {
             int findex;
             double Q;

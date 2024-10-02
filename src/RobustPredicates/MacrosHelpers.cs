@@ -1,4 +1,6 @@
-﻿namespace RobustPredicates
+﻿using System.Runtime.CompilerServices;
+
+namespace RobustPredicates
 {
     internal static class MacrosHelpers
     {
@@ -59,30 +61,35 @@
             IsperrboundC = (71.0 + 1408.0 * Epsilon) * Epsilon * Epsilon;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void FastTwoSumTail(double a, double b, double x, out double y)
         {
             double bvirt = x - a;
             y = b - bvirt;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void FastTwoSum(double a, double b, out double x, out double y)
         {
             x = a + b;
             FastTwoSumTail(a, b, x, out y);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void FastTwoDiffTail(double a, double b, double x, out double y)
         {
             double bvirt = a - x;
             y = bvirt - b;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void FastTwoDiff(double a, double b, out double x, out double y)
         {
             x = a - b;
             FastTwoDiffTail(a, b, x, out y);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoSumTail(double a, double b, double x, out double y)
         {
             double bvirt = x - a;
@@ -92,12 +99,14 @@
             y = around + bround;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoSum(double a, double b, out double x, out double y)
         {
             x = a + b;
             TwoSumTail(a, b, x, out y);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoDiffTail(double a, double b, double x, out double y)
         {
             double bvirt = a - x;
@@ -107,12 +116,14 @@
             y = around + bround;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoDiff(double a, double b, out double x, out double y)
         {
             x = a - b;
             TwoDiffTail(a, b, x, out y);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void Split(double a, out double ahi, out double alo)
         {
             double c = (double)(Splitter * a);
@@ -121,6 +132,7 @@
             alo = a - ahi;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoProductTail(double a, double b, double x, out double y)
         {
             Split(a, out double ahi, out double alo);
@@ -131,12 +143,17 @@
             y = (alo * blo) - err3;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoProduct(double a, double b, out double x, out double y)
         {
             x = a * b;
             TwoProductTail(a, b, x, out y);
         }
 
+        /// <summary>
+        /// TwoProductPresplit() is TwoProduct() where one of the inputs has already been split. Avoids redundant splitting.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoProductPresplit(double a, double b, double bhi, double blo, out double x, out double y)
         {
             x = a * b;
@@ -147,6 +164,10 @@
             y = (alo * blo) - err3;
         }
 
+        /// <summary>
+        /// TwoProduct2Presplit() is TwoProduct() where both of the inputs have already been split. Avoids redundant splitting.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoProduct2Presplit(double a, double ahi, double alo, double b, double bhi, double blo, out double x, out double y)
         {
             x = a * b;
@@ -156,6 +177,7 @@
             y = (alo * blo) - err3;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void SquareTail(double a, double x, out double y)
         {
             Split(a, out double ahi, out double alo);
@@ -164,48 +186,56 @@
             y = (alo * alo) - err3;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void Square(double a, out double x, out double y)
         {
             x = a * a;
             SquareTail(a, x, out y);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoOneSum(double a1, double a0, double b, out double x2, out double x1, out double x0)
         {
             TwoSum(a0, b, out double _i, out x0);
             TwoSum(a1, _i, out x2, out x1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoOneDiff(double a1, double a0, double b, out double x2, out double x1, out double x0)
         {
             TwoDiff(a0, b, out double _i, out x0);
             TwoSum(a1, _i, out x2, out x1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoTwoSum(double a1, double a0, double b1, double b0, out double x3, out double x2, out double x1, out double x0)
         {
             TwoOneSum(a1, a0, b0, out double _j, out double _0, out x0);
             TwoOneSum(_j, _0, b1, out x3, out x2, out x1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoTwoDiff(double a1, double a0, double b1, double b0, out double x3, out double x2, out double x1, out double x0)
         {
             TwoOneDiff(a1, a0, b0, out double _j, out double _0, out x0);
             TwoOneDiff(_j, _0, b1, out x3, out x2, out x1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void FourOneSum(double a3, double a2, double a1, double a0, double b, out double x4, out double x3, out double x2, out double x1, out double x0)
         {
             TwoOneSum(a1, a0, b, out double _j, out x1, out x0);
             TwoOneSum(a3, a2, _j, out x4, out x3, out x2);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void FourTwoSum(double a3, double a2, double a1, double a0, double b1, double b0, out double x5, out double x4, out double x3, out double x2, out double x1, out double x0)
         {
             FourOneSum(a3, a2, a1, a0, b0, out double _k, out double _2, out double _1, out double _0, out x0);
             FourOneSum(_k, _2, _1, _0, b1, out x5, out x4, out x3, out x2, out x1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void FourFourSum(double a3, double a2, double a1, double a0, double b4, double b3, double b1, double b0,
                                           out double x7, out double x6, out double x5, out double x4, out double x3, out double x2,
                                           out double x1, out double x0)
@@ -214,6 +244,7 @@
             FourTwoSum(_l, _2, _1, _0, b4, b3, out x7, out x6, out x5, out x4, out x3, out x2);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void EightOneSum(double a7, double a6, double a5, double a4, double a3, double a2, double a1, double a0, double b,
             out double x8, out double x7, out double x6, out double x5, out double x4, out double x3, out double x2, out double x1, out double x0)
         {
@@ -221,6 +252,7 @@
             FourOneSum(a7, a6, a5, a4, _j, out x8, out x7, out x6, out x5, out x4);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void EightTwoSum(double a7, double a6, double a5, double a4, double a3, double a2, double a1, double a0, double b1, double b0,
             out double x9, out double x8, out double x7, out double x6, out double x5, out double x4, out double x3, out double x2, out double x1, out double x0)
         {
@@ -228,6 +260,7 @@
             EightOneSum(_k, _6, _5, _4, _3, _2, _1, _0, b1, out x9, out x8, out x7, out x6, out x5, out x4, out x3, out x2, out x1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoOneProduct(double a1, double a0, double b, out double x3, out double x2, out double x1, out double x0)
         {
             Split(b, out double bhi, out double blo);
@@ -236,7 +269,8 @@
             TwoSum(_i, _0, out double _k, out x1);
             FastTwoSum(_j, _k, out x3, out x2);
         }
-         
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoTwoProduct(double a1, double a0, double b1, double b0,
             out double x7, out double x6, out double x5, out double x4, out double x3, out double x2, out double x1, out double x0)
         {
