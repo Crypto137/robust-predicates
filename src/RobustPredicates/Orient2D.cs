@@ -4,68 +4,6 @@ namespace RobustPredicates
 {
     public static class Orient2D
     {
-        private static unsafe double Adapt(double* pa, double* pb, double* pc, double detsum)
-        {
-            double acx = pa[0] - pc[0];
-            double bcx = pb[0] - pc[0];
-            double acy = pa[1] - pc[1];
-            double bcy = pb[1] - pc[1];
-
-            MacrosHelpers.TwoProduct(acx, bcy, out double detleft, out double detlefttail);
-            MacrosHelpers.TwoProduct(acy, bcx, out double detright, out double detrighttail);
-            double* B = stackalloc double[4];
-            MacrosHelpers.TwoTwoDiff(detleft, detlefttail, detright, detrighttail, out B[3], out B[2], out B[1], out B[0]);
-
-            double det = ArithmeticFunctions.Estimate(4, B);
-            double errbound = MacrosHelpers.CcwerrboundB * detsum;
-            if ((det >= errbound) || (-det >= errbound))
-            {
-                return det;
-            }
-
-            MacrosHelpers.TwoDiffTail(pa[0], pc[0], acx, out double acxtail);
-            MacrosHelpers.TwoDiffTail(pb[0], pc[0], bcx, out double bcxtail);
-            MacrosHelpers.TwoDiffTail(pa[1], pc[1], acy, out double acytail);
-            MacrosHelpers.TwoDiffTail(pb[1], pc[1], bcy, out double bcytail);
-
-            if ((acxtail == 0.0) && (acytail == 0.0)
-                && (bcxtail == 0.0) && (bcytail == 0.0))
-            {
-                return det;
-            }
-
-            errbound = MacrosHelpers.CcwerrboundC * detsum + MacrosHelpers.Resulterrbound * Math.Abs(det);
-            det += (acx * bcytail + bcy * acxtail)
-                 - (acy * bcxtail + bcx * acytail);
-            if ((det >= errbound) || (-det >= errbound))
-            {
-                return det;
-            }
-
-            double* u = stackalloc double[4];
-            MacrosHelpers.TwoProduct(acxtail, bcy, out double s1, out double s0);
-            MacrosHelpers.TwoProduct(acytail, bcx, out double t1, out double t0);
-            MacrosHelpers.TwoTwoDiff(s1, s0, t1, t0, out u[3], out u[2], out u[1], out u[0]);
-
-            double* C1 = stackalloc double[8];
-            int C1length = ArithmeticFunctions.FastExpansionSumZeroelim(4, B, 4, u, C1);
-
-            MacrosHelpers.TwoProduct(acx, bcytail, out s1, out s0);
-            MacrosHelpers.TwoProduct(acy, bcxtail, out t1, out t0);
-            MacrosHelpers.TwoTwoDiff(s1, s0, t1, t0, out u[3], out u[2], out u[1], out u[0]);
-            double* C2 = stackalloc double[12];
-            int C2length = ArithmeticFunctions.FastExpansionSumZeroelim(C1length, C1, 4, u, C2);
-
-            MacrosHelpers.TwoProduct(acxtail, bcytail, out s1, out s0);
-            MacrosHelpers.TwoProduct(acytail, bcxtail, out t1, out t0);
-            MacrosHelpers.TwoTwoDiff(s1, s0, t1, t0, out u[3], out u[2], out u[1], out u[0]);
-
-            double* D = stackalloc double[16];
-            int Dlength = ArithmeticFunctions.FastExpansionSumZeroelim(C2length, C2, 4, u, D);
-
-            return D[Dlength - 1];
-        }
-
         public static unsafe double Fast(double* pa, double* pb, double* pc)
         {
             double acx = pa[0] - pc[0];
@@ -208,6 +146,68 @@ namespace RobustPredicates
             {
                 return Robust(paPtr, pbPtr, pcPtr);
             }
+        }
+
+        private static unsafe double Adapt(double* pa, double* pb, double* pc, double detsum)
+        {
+            double acx = pa[0] - pc[0];
+            double bcx = pb[0] - pc[0];
+            double acy = pa[1] - pc[1];
+            double bcy = pb[1] - pc[1];
+
+            MacrosHelpers.TwoProduct(acx, bcy, out double detleft, out double detlefttail);
+            MacrosHelpers.TwoProduct(acy, bcx, out double detright, out double detrighttail);
+            double* B = stackalloc double[4];
+            MacrosHelpers.TwoTwoDiff(detleft, detlefttail, detright, detrighttail, out B[3], out B[2], out B[1], out B[0]);
+
+            double det = ArithmeticFunctions.Estimate(4, B);
+            double errbound = MacrosHelpers.CcwerrboundB * detsum;
+            if ((det >= errbound) || (-det >= errbound))
+            {
+                return det;
+            }
+
+            MacrosHelpers.TwoDiffTail(pa[0], pc[0], acx, out double acxtail);
+            MacrosHelpers.TwoDiffTail(pb[0], pc[0], bcx, out double bcxtail);
+            MacrosHelpers.TwoDiffTail(pa[1], pc[1], acy, out double acytail);
+            MacrosHelpers.TwoDiffTail(pb[1], pc[1], bcy, out double bcytail);
+
+            if ((acxtail == 0.0) && (acytail == 0.0)
+                && (bcxtail == 0.0) && (bcytail == 0.0))
+            {
+                return det;
+            }
+
+            errbound = MacrosHelpers.CcwerrboundC * detsum + MacrosHelpers.Resulterrbound * Math.Abs(det);
+            det += (acx * bcytail + bcy * acxtail)
+                 - (acy * bcxtail + bcx * acytail);
+            if ((det >= errbound) || (-det >= errbound))
+            {
+                return det;
+            }
+
+            double* u = stackalloc double[4];
+            MacrosHelpers.TwoProduct(acxtail, bcy, out double s1, out double s0);
+            MacrosHelpers.TwoProduct(acytail, bcx, out double t1, out double t0);
+            MacrosHelpers.TwoTwoDiff(s1, s0, t1, t0, out u[3], out u[2], out u[1], out u[0]);
+
+            double* C1 = stackalloc double[8];
+            int C1length = ArithmeticFunctions.FastExpansionSumZeroelim(4, B, 4, u, C1);
+
+            MacrosHelpers.TwoProduct(acx, bcytail, out s1, out s0);
+            MacrosHelpers.TwoProduct(acy, bcxtail, out t1, out t0);
+            MacrosHelpers.TwoTwoDiff(s1, s0, t1, t0, out u[3], out u[2], out u[1], out u[0]);
+            double* C2 = stackalloc double[12];
+            int C2length = ArithmeticFunctions.FastExpansionSumZeroelim(C1length, C1, 4, u, C2);
+
+            MacrosHelpers.TwoProduct(acxtail, bcytail, out s1, out s0);
+            MacrosHelpers.TwoProduct(acytail, bcxtail, out t1, out t0);
+            MacrosHelpers.TwoTwoDiff(s1, s0, t1, t0, out u[3], out u[2], out u[1], out u[0]);
+
+            double* D = stackalloc double[16];
+            int Dlength = ArithmeticFunctions.FastExpansionSumZeroelim(C2length, C2, 4, u, D);
+
+            return D[Dlength - 1];
         }
     }
 }

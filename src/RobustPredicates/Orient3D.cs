@@ -4,49 +4,125 @@ namespace RobustPredicates
 {
     public class Orient3D
     {
-        private static double Adapt(double[] pa, double[] pb, double[] pc, double[] pd, double permanent)
+        public static unsafe double Fast(double* pa, double* pb, double* pc, double* pd)
         {
+            double adx = pa[0] - pd[0];
+            double bdx = pb[0] - pd[0];
+            double cdx = pc[0] - pd[0];
+            double ady = pa[1] - pd[1];
+            double bdy = pb[1] - pd[1];
+            double cdy = pc[1] - pd[1];
+            double adz = pa[2] - pd[2];
+            double bdz = pb[2] - pd[2];
+            double cdz = pc[2] - pd[2];
 
-            var adx = pa[0] - pd[0];
-            var bdx = pb[0] - pd[0];
-            var cdx = pc[0] - pd[0];
-            var ady = pa[1] - pd[1];
-            var bdy = pb[1] - pd[1];
-            var cdy = pc[1] - pd[1];
-            var adz = pa[2] - pd[2];
-            var bdz = pb[2] - pd[2];
-            var cdz = pc[2] - pd[2];
+            return adx * (bdy * cdz - bdz * cdy)
+                 + bdx * (cdy * adz - cdz * ady)
+                 + cdx * (ady * bdz - adz * bdy);
+        }
+
+        public static unsafe double Fast(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd)
+        {
+            fixed (double* paPtr = pa)
+            fixed (double* pbPtr = pb)
+            fixed (double* pcPtr = pc)
+            fixed (double* pdPtr = pd)
+            {
+                return Fast(paPtr, pbPtr, pcPtr, pdPtr);
+            }
+        }
+
+        public static unsafe double Robust(double* pa, double* pb, double* pc, double* pd)
+        {
+            double adx = pa[0] - pd[0];
+            double bdx = pb[0] - pd[0];
+            double cdx = pc[0] - pd[0];
+            double ady = pa[1] - pd[1];
+            double bdy = pb[1] - pd[1];
+            double cdy = pc[1] - pd[1];
+            double adz = pa[2] - pd[2];
+            double bdz = pb[2] - pd[2];
+            double cdz = pc[2] - pd[2];
+
+            double bdxcdy = bdx * cdy;
+            double cdxbdy = cdx * bdy;
+
+            double cdxady = cdx * ady;
+            double adxcdy = adx * cdy;
+
+            double adxbdy = adx * bdy;
+            double bdxady = bdx * ady;
+
+            double det = adz * (bdxcdy - cdxbdy)
+                 + bdz * (cdxady - adxcdy)
+                 + cdz * (adxbdy - bdxady);
+
+            double permanent = (Math.Abs(bdxcdy) + Math.Abs(cdxbdy)) * Math.Abs(adz)
+                       + (Math.Abs(cdxady) + Math.Abs(adxcdy)) * Math.Abs(bdz)
+                       + (Math.Abs(adxbdy) + Math.Abs(bdxady)) * Math.Abs(cdz);
+
+            double errbound = MacrosHelpers.O3derrboundA * permanent;
+            if ((det > errbound) || (-det > errbound))
+            {
+                return det;
+            }
+
+            return Adapt(pa, pb, pc, pd, permanent);
+        }
+
+        public static unsafe double Robust(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd)
+        {
+            fixed (double* paPtr = pa)
+            fixed (double* pbPtr = pb)
+            fixed (double* pcPtr = pc)
+            fixed (double* pdPtr = pd)
+            {
+                return Robust(paPtr, pbPtr, pcPtr, pdPtr);
+            }
+        }
+
+        private static unsafe double Adapt(double* pa, double* pb, double* pc, double* pd, double permanent)
+        {
+            double adx = pa[0] - pd[0];
+            double bdx = pb[0] - pd[0];
+            double cdx = pc[0] - pd[0];
+            double ady = pa[1] - pd[1];
+            double bdy = pb[1] - pd[1];
+            double cdy = pc[1] - pd[1];
+            double adz = pa[2] - pd[2];
+            double bdz = pb[2] - pd[2];
+            double cdz = pc[2] - pd[2];
 
             MacrosHelpers.TwoProduct(bdx, cdy, out double bdxcdy1, out double bdxcdy0);
             MacrosHelpers.TwoProduct(cdx, bdy, out double cdxbdy1, out double cdxbdy0);
-            var bc = new double[4];
+            double* bc = stackalloc double[4];
             MacrosHelpers.TwoTwoDiff(bdxcdy1, bdxcdy0, cdxbdy1, cdxbdy0, out bc[3], out bc[2], out bc[1], out bc[0]);
-            double[] adet = new double[8];
-            var alen = ArithmeticFunctions.ScaleExpansionZeroelim(4, bc, adz, adet);
+            double* adet = stackalloc double[8];
+            int alen = ArithmeticFunctions.ScaleExpansionZeroelim(4, bc, adz, adet);
 
             MacrosHelpers.TwoProduct(cdx, ady, out double cdxady1, out double cdxady0);
             MacrosHelpers.TwoProduct(adx, cdy, out double adxcdy1, out double adxcdy0);
-            var ca = new double[4];
+            double* ca = stackalloc double[4];
             MacrosHelpers.TwoTwoDiff(cdxady1, cdxady0, adxcdy1, adxcdy0, out ca[3], out ca[2], out ca[1], out ca[0]);
-            double[] bdet = new double[8];
-            var blen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ca, bdz, bdet);
+            double* bdet = stackalloc double[8];
+            int blen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ca, bdz, bdet);
 
             MacrosHelpers.TwoProduct(adx, bdy, out double adxbdy1, out double adxbdy0);
             MacrosHelpers.TwoProduct(bdx, ady, out double bdxady1, out double bdxady0);
-            var ab = new double[4];
+            double* ab = stackalloc double[4];
             MacrosHelpers.TwoTwoDiff(adxbdy1, adxbdy0, bdxady1, bdxady0, out ab[3], out ab[2], out ab[1], out ab[0]);
 
-            double[] cdet = new double[8];
-            var clen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ab, cdz, cdet);
+            double* cdet = stackalloc double[8];
+            int clen = ArithmeticFunctions.ScaleExpansionZeroelim(4, ab, cdz, cdet);
 
-            double[] abdet = new double[16];
-            var ablen = ArithmeticFunctions.FastExpansionSumZeroelim(alen, adet, blen, bdet, abdet);
-            double[] fin1 = new double[192];
-            var finlength = ArithmeticFunctions.FastExpansionSumZeroelim(ablen, abdet, clen, cdet, fin1);
+            double* abdet = stackalloc double[16];
+            int ablen = ArithmeticFunctions.FastExpansionSumZeroelim(alen, adet, blen, bdet, abdet);
+            double* fin1 = stackalloc double[192];
+            int finlength = ArithmeticFunctions.FastExpansionSumZeroelim(ablen, abdet, clen, cdet, fin1);
 
-            var det = ArithmeticFunctions.Estimate(finlength, fin1);
+            double det = ArithmeticFunctions.Estimate(finlength, fin1);
 
-            var errbound = MacrosHelpers.O3derrboundB * permanent;
+            double errbound = MacrosHelpers.O3derrboundB * permanent;
             if ((det >= errbound) || (-det >= errbound))
             {
                 return det;
@@ -84,12 +160,12 @@ namespace RobustPredicates
                 return det;
             }
 
-            var finnow = fin1;
-            var fin2 = new double[192];
-            var finother = fin2;
+            double* finnow = fin1;
+            double* fin2 = stackalloc double[192];
+            double* finother = fin2;
 
-            double[] at_b = new double[4];
-            double[] at_c = new double[4];
+            double* at_b = stackalloc double[4];
+            double* at_c = stackalloc double[4];
             int at_blen;
             int at_clen;
             if (adxtail == 0.0)
@@ -103,7 +179,7 @@ namespace RobustPredicates
                 }
                 else
                 {
-                    var negate = -adytail;
+                    double negate = -adytail;
                     MacrosHelpers.TwoProduct(negate, bdx, out at_b[1], out at_b[0]);
                     at_blen = 2;
                     MacrosHelpers.TwoProduct(adytail, cdx, out at_c[1], out at_c[0]);
@@ -116,7 +192,7 @@ namespace RobustPredicates
                 {
                     MacrosHelpers.TwoProduct(adxtail, bdy, out at_b[1], out at_b[0]);
                     at_blen = 2;
-                    var negate = -adxtail;
+                    double negate = -adxtail;
                     MacrosHelpers.TwoProduct(negate, cdy, out at_c[1], out at_c[0]);
                     at_clen = 2;
                 }
@@ -135,8 +211,8 @@ namespace RobustPredicates
                     at_clen = 4;
                 }
             }
-            double[] bt_c = new double[4];
-            double[] bt_a = new double[4];
+            double* bt_c = stackalloc double[4];
+            double* bt_a = stackalloc double[4];
             int bt_alen;
             int bt_clen;
             if (bdxtail == 0.0)
@@ -150,7 +226,7 @@ namespace RobustPredicates
                 }
                 else
                 {
-                    var negate = -bdytail;
+                    double negate = -bdytail;
                     MacrosHelpers.TwoProduct(negate, cdx, out bt_c[1], out bt_c[0]);
                     bt_clen = 2;
                     MacrosHelpers.TwoProduct(bdytail, adx, out bt_a[1], out bt_a[0]);
@@ -163,7 +239,7 @@ namespace RobustPredicates
                 {
                     MacrosHelpers.TwoProduct(bdxtail, cdy, out bt_c[1], out bt_c[0]);
                     bt_clen = 2;
-                    var negate = -bdxtail;
+                    double negate = -bdxtail;
                     MacrosHelpers.TwoProduct(negate, ady, out bt_a[1], out bt_a[0]);
                     bt_alen = 2;
                 }
@@ -181,8 +257,8 @@ namespace RobustPredicates
                     bt_alen = 4;
                 }
             }
-            double[] ct_a = new double[4];
-            double[] ct_b = new double[4];
+            double* ct_a = stackalloc double[4];
+            double* ct_b = stackalloc double[4];
             int ct_alen;
             int ct_blen;
             if (cdxtail == 0.0)
@@ -196,7 +272,7 @@ namespace RobustPredicates
                 }
                 else
                 {
-                    var negate = -cdytail;
+                    double negate = -cdytail;
                     MacrosHelpers.TwoProduct(negate, adx, out ct_a[1], out ct_a[0]);
                     ct_alen = 2;
                     MacrosHelpers.TwoProduct(cdytail, bdx, out ct_b[1], out ct_b[0]);
@@ -209,7 +285,7 @@ namespace RobustPredicates
                 {
                     MacrosHelpers.TwoProduct(cdxtail, ady, out ct_a[1], out ct_a[0]);
                     ct_alen = 2;
-                    var negate = -cdxtail;
+                    double negate = -cdxtail;
                     MacrosHelpers.TwoProduct(negate, bdy, out ct_b[1], out ct_b[0]);
                     ct_blen = 2;
                 }
@@ -227,23 +303,23 @@ namespace RobustPredicates
                     ct_blen = 4;
                 }
             }
-            double[] bct = new double[8];
-            var bctlen = ArithmeticFunctions.FastExpansionSumZeroelim(bt_clen, bt_c, ct_blen, ct_b, bct);
-            double[] u = new double[4];
-            double[] v = new double[12];
-            double[] w = new double[16];
-            var wlength = ArithmeticFunctions.ScaleExpansionZeroelim(bctlen, bct, adz, w);
+            double* bct = stackalloc double[8];
+            int bctlen = ArithmeticFunctions.FastExpansionSumZeroelim(bt_clen, bt_c, ct_blen, ct_b, bct);
+            double* u = stackalloc double[4];
+            double* v = stackalloc double[12];
+            double* w = stackalloc double[16];
+            int wlength = ArithmeticFunctions.ScaleExpansionZeroelim(bctlen, bct, adz, w);
             finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, wlength, w,
                                                     finother);
-            var finswap = finnow; finnow = finother; finother = finswap;
-            double[] cat = new double[8];
-            var catlen = ArithmeticFunctions.FastExpansionSumZeroelim(ct_alen, ct_a, at_clen, at_c, cat);
+            double* finswap = finnow; finnow = finother; finother = finswap;
+            double* cat = stackalloc double[8];
+            int catlen = ArithmeticFunctions.FastExpansionSumZeroelim(ct_alen, ct_a, at_clen, at_c, cat);
             wlength = ArithmeticFunctions.ScaleExpansionZeroelim(catlen, cat, bdz, w);
             finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, wlength, w,
                                                     finother);
             finswap = finnow; finnow = finother; finother = finswap;
-            double[] abt = new double[8];
-            var abtlen = ArithmeticFunctions.FastExpansionSumZeroelim(at_blen, at_b, bt_alen, bt_a, abt);
+            double* abt = stackalloc double[8];
+            int abtlen = ArithmeticFunctions.FastExpansionSumZeroelim(at_blen, at_b, bt_alen, bt_a, abt);
             wlength = ArithmeticFunctions.ScaleExpansionZeroelim(abtlen, abt, cdz, w);
             finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, wlength, w,
                                                     finother);
@@ -253,21 +329,21 @@ namespace RobustPredicates
 
             if (adztail != 0.0)
             {
-                var vlength = ArithmeticFunctions.ScaleExpansionZeroelim(4, bc, adztail, v);
+                int vlength = ArithmeticFunctions.ScaleExpansionZeroelim(4, bc, adztail, v);
                 finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, vlength, v,
                                                         finother);
                 finswap = finnow; finnow = finother; finother = finswap;
             }
             if (bdztail != 0.0)
             {
-                var vlength = ArithmeticFunctions.ScaleExpansionZeroelim(4, ca, bdztail, v);
+                int vlength = ArithmeticFunctions.ScaleExpansionZeroelim(4, ca, bdztail, v);
                 finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, vlength, v,
                                                         finother);
                 finswap = finnow; finnow = finother; finother = finswap;
             }
             if (cdztail != 0.0)
             {
-                var vlength = ArithmeticFunctions.ScaleExpansionZeroelim(4, ab, cdztail, v);
+                int vlength = ArithmeticFunctions.ScaleExpansionZeroelim(4, ab, cdztail, v);
                 finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, vlength, v,
                                                         finother);
                 finswap = finnow; finnow = finother; finother = finswap;
@@ -294,7 +370,7 @@ namespace RobustPredicates
                 }
                 if (cdytail != 0.0)
                 {
-                    var negate = -adxtail;
+                    double negate = -adxtail;
                     MacrosHelpers.TwoProduct(negate, cdytail, out double adxt_cdyt1, out double adxt_cdyt0);
                     MacrosHelpers.TwoOneProduct(adxt_cdyt1, adxt_cdyt0, bdz, out u[3], out u[2], out u[1], out u[0]);
                     finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, 4, u, finother);
@@ -328,7 +404,7 @@ namespace RobustPredicates
                 }
                 if (adytail != 0.0)
                 {
-                    var negate = -bdxtail;
+                    double negate = -bdxtail;
                     MacrosHelpers.TwoProduct(negate, adytail, out double bdxt_adyt1, out double bdxt_adyt0);
                     MacrosHelpers.TwoOneProduct(bdxt_adyt1, bdxt_adyt0, cdz, out u[3], out u[2], out u[1], out u[0]);
                     finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, 4, u,
@@ -362,7 +438,7 @@ namespace RobustPredicates
                 }
                 if (bdytail != 0.0)
                 {
-                    var negate = -cdxtail;
+                    double negate = -cdxtail;
                     MacrosHelpers.TwoProduct(negate, bdytail, out double cdxt_bdyt1, out double cdxt_bdyt0);
                     MacrosHelpers.TwoOneProduct(cdxt_bdyt1, cdxt_bdyt0, adz, out u[3], out u[2], out u[1], out u[0]);
                     finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, 4, u,
@@ -401,62 +477,6 @@ namespace RobustPredicates
             }
 
             return finnow[finlength - 1];
-        }
-
-        public static double Fast(double[] pa, double[] pb, double[] pc, double[] pd)
-        {
-
-            var adx = pa[0] - pd[0];
-            var bdx = pb[0] - pd[0];
-            var cdx = pc[0] - pd[0];
-            var ady = pa[1] - pd[1];
-            var bdy = pb[1] - pd[1];
-            var cdy = pc[1] - pd[1];
-            var adz = pa[2] - pd[2];
-            var bdz = pb[2] - pd[2];
-            var cdz = pc[2] - pd[2];
-
-            return adx * (bdy * cdz - bdz * cdy)
-                 + bdx * (cdy * adz - cdz * ady)
-                 + cdx * (ady * bdz - adz * bdy);
-        }
-
-        public static double Robust(double[] pa, double[] pb, double[] pc, double[] pd)
-        {
-            var adx = pa[0] - pd[0];
-            var bdx = pb[0] - pd[0];
-            var cdx = pc[0] - pd[0];
-            var ady = pa[1] - pd[1];
-            var bdy = pb[1] - pd[1];
-            var cdy = pc[1] - pd[1];
-            var adz = pa[2] - pd[2];
-            var bdz = pb[2] - pd[2];
-            var cdz = pc[2] - pd[2];
-
-            var bdxcdy = bdx * cdy;
-            var cdxbdy = cdx * bdy;
-
-            var cdxady = cdx * ady;
-            var adxcdy = adx * cdy;
-
-            var adxbdy = adx * bdy;
-            var bdxady = bdx * ady;
-
-            var det = adz * (bdxcdy - cdxbdy)
-                 + bdz * (cdxady - adxcdy)
-                 + cdz * (adxbdy - bdxady);
-
-            var permanent = (Math.Abs(bdxcdy) + Math.Abs(cdxbdy)) * Math.Abs(adz)
-                       + (Math.Abs(cdxady) + Math.Abs(adxcdy)) * Math.Abs(bdz)
-                       + (Math.Abs(adxbdy) + Math.Abs(bdxady)) * Math.Abs(cdz);
-
-            var errbound = MacrosHelpers.O3derrboundA * permanent;
-            if ((det > errbound) || (-det > errbound))
-            {
-                return det;
-            }
-
-            return Adapt(pa, pb, pc, pd, permanent);
         }
     }
 }

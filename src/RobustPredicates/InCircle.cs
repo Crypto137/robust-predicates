@@ -141,6 +141,55 @@ namespace RobustPredicates
             }
         }
 
+        public static unsafe double Robust(double* pa, double* pb, double* pc, double* pd)
+        {
+            double adx = pa[0] - pd[0];
+            double bdx = pb[0] - pd[0];
+            double cdx = pc[0] - pd[0];
+            double ady = pa[1] - pd[1];
+            double bdy = pb[1] - pd[1];
+            double cdy = pc[1] - pd[1];
+
+            double bdxcdy = bdx * cdy;
+            double cdxbdy = cdx * bdy;
+            double alift = adx * adx + ady * ady;
+
+            double cdxady = cdx * ady;
+            double adxcdy = adx * cdy;
+            double blift = bdx * bdx + bdy * bdy;
+
+            double adxbdy = adx * bdy;
+            double bdxady = bdx * ady;
+            double clift = cdx * cdx + cdy * cdy;
+
+            double det = alift * (bdxcdy - cdxbdy)
+                  + blift * (cdxady - adxcdy)
+                  + clift * (adxbdy - bdxady);
+
+            double permanent = (Math.Abs(bdxcdy) + Math.Abs(cdxbdy)) * alift
+                        + (Math.Abs(cdxady) + Math.Abs(adxcdy)) * blift
+                        + (Math.Abs(adxbdy) + Math.Abs(bdxady)) * clift;
+
+            double errbound = MacrosHelpers.IccerrboundA * permanent;
+            if ((det > errbound) || (-det > errbound))
+            {
+                return det;
+            }
+
+            return Adapt(pa, pb, pc, pd, permanent);
+        }
+
+        public static unsafe double Robust(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd)
+        {
+            fixed (double* paPtr = pa)
+            fixed (double* pbPtr = pb)
+            fixed (double* pcPtr = pc)
+            fixed (double* pdPtr = pd)
+            {
+                return Robust(paPtr, pbPtr, pcPtr, pdPtr);
+            }
+        }
+
         private static unsafe double Adapt(double* pa, double* pb, double* pc, double* pd, double permanent)
         {
             double adx = pa[0] - pd[0];
@@ -347,7 +396,7 @@ namespace RobustPredicates
                 finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
                                                         temp48, finother);
                 finswap = finnow;
-                finnow = finother; 
+                finnow = finother;
                 finother = finswap;
             }
 
@@ -373,7 +422,7 @@ namespace RobustPredicates
                 finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
                                                         temp48, finother);
                 finswap = finnow;
-                finnow = finother; 
+                finnow = finother;
                 finother = finswap;
             }
 
@@ -398,7 +447,7 @@ namespace RobustPredicates
                 finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
                                                         temp48, finother);
                 finswap = finnow;
-                finnow = finother; 
+                finnow = finother;
                 finother = finswap;
             }
 
@@ -477,7 +526,7 @@ namespace RobustPredicates
                                                             temp32alen, temp32a, temp48);
                     finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
                                                             temp48, finother);
-                    finswap = finnow; 
+                    finswap = finnow;
                     finnow = finother;
                     finother = finswap;
                     if (bdytail != 0.0)
@@ -488,7 +537,7 @@ namespace RobustPredicates
                         finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp16alen,
                                                                 temp16a, finother);
                         finswap = finnow;
-                        finnow = finother; 
+                        finnow = finother;
                         finother = finswap;
                     }
                     if (cdytail != 0.0)
@@ -551,7 +600,7 @@ namespace RobustPredicates
                                                             temp32blen, temp32b, temp64);
                     finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp64len,
                                                             temp64, finother);
-                    finswap = finnow; 
+                    finswap = finnow;
                     finnow = finother;
                     finother = finswap;
                 }
@@ -625,7 +674,7 @@ namespace RobustPredicates
                                                               temp16a);
                         finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp16alen,
                                                                 temp16a, finother);
-                        finswap = finnow; 
+                        finswap = finnow;
                         finnow = finother;
                         finother = finswap;
                     }
@@ -660,7 +709,7 @@ namespace RobustPredicates
                     finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp48len,
                                                             temp48, finother);
                     finswap = finnow;
-                    finnow = finother; 
+                    finnow = finother;
                     finother = finswap;
 
 
@@ -738,8 +787,8 @@ namespace RobustPredicates
                                                               temp16a);
                         finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp16alen,
                                                                 temp16a, finother);
-                        finswap = finnow; 
-                        finnow = finother; 
+                        finswap = finnow;
+                        finnow = finother;
                         finother = finswap;
                     }
                     if (bdytail != 0.0)
@@ -749,8 +798,8 @@ namespace RobustPredicates
                                                               temp16a);
                         finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp16alen,
                                                                 temp16a, finother);
-                        finswap = finnow; 
-                        finnow = finother; 
+                        finswap = finnow;
+                        finnow = finother;
                         finother = finswap;
                     }
 
@@ -767,8 +816,8 @@ namespace RobustPredicates
                                                             temp32blen, temp32b, temp64);
                     finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp64len,
                                                             temp64, finother);
-                    finswap = finnow; 
-                    finnow = finother; 
+                    finswap = finnow;
+                    finnow = finother;
                     finother = finswap;
                 }
 
@@ -800,62 +849,13 @@ namespace RobustPredicates
                                                             temp32blen, temp32b, temp64);
                     finlength = ArithmeticFunctions.FastExpansionSumZeroelim(finlength, finnow, temp64len,
                                                             temp64, finother);
-                    finswap = finnow; 
-                    finnow = finother; 
+                    finswap = finnow;
+                    finnow = finother;
                     finother = finswap;
                 }
             }
 
             return finnow[finlength - 1];
-        }
-
-        public static unsafe double Robust(double* pa, double* pb, double* pc, double* pd)
-        {
-            double adx = pa[0] - pd[0];
-            double bdx = pb[0] - pd[0];
-            double cdx = pc[0] - pd[0];
-            double ady = pa[1] - pd[1];
-            double bdy = pb[1] - pd[1];
-            double cdy = pc[1] - pd[1];
-
-            double bdxcdy = bdx * cdy;
-            double cdxbdy = cdx * bdy;
-            double alift = adx * adx + ady * ady;
-
-            double cdxady = cdx * ady;
-            double adxcdy = adx * cdy;
-            double blift = bdx * bdx + bdy * bdy;
-
-            double adxbdy = adx * bdy;
-            double bdxady = bdx * ady;
-            double clift = cdx * cdx + cdy * cdy;
-
-            double det = alift * (bdxcdy - cdxbdy)
-                  + blift * (cdxady - adxcdy)
-                  + clift * (adxbdy - bdxady);
-
-            double permanent = (Math.Abs(bdxcdy) + Math.Abs(cdxbdy)) * alift
-                        + (Math.Abs(cdxady) + Math.Abs(adxcdy)) * blift
-                        + (Math.Abs(adxbdy) + Math.Abs(bdxady)) * clift;
-
-            double errbound = MacrosHelpers.IccerrboundA * permanent;
-            if ((det > errbound) || (-det > errbound))
-            {
-                return det;
-            }
-
-            return Adapt(pa, pb, pc, pd, permanent);
-        }
-
-        public static unsafe double Robust(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd)
-        {
-            fixed (double* paPtr = pa)
-            fixed (double* pbPtr = pb)
-            fixed (double* pcPtr = pc)
-            fixed (double* pdPtr = pd)
-            {
-                return Robust(paPtr, pbPtr, pcPtr, pdPtr);
-            }
         }
     }
 }

@@ -16,14 +16,6 @@ namespace RobustPredicates
             return Q;
         }
 
-        internal static unsafe double Estimate(int len, ReadOnlySpan<double> e)
-        {
-            fixed (double* ePtr = e)
-            {
-                return Estimate(len, ePtr);
-            }
-        }
-
         internal static unsafe int ScaleExpansionZeroelim(int elen, double* e, double b, double* h)
         {
             MacrosHelpers.Split(b, out double bhi, out double blo);
@@ -53,15 +45,6 @@ namespace RobustPredicates
                 h[hindex++] = Q;
             }
             return hindex;
-        }
-
-        internal static unsafe int ScaleExpansionZeroelim(int elen, Span<double> e, double b, Span<double> h)
-        {
-            fixed (double* ePtr = e)
-            fixed (double* hPtr = h)
-            {
-                return ScaleExpansionZeroelim(elen, ePtr, b, hPtr);
-            }
         }
 
         internal static unsafe int FastExpansionSumZeroelim(int elen, double* e, int flen, double* f, double* h)
@@ -146,16 +129,6 @@ namespace RobustPredicates
             }
 
             return hindex;
-        }
-
-        internal static unsafe int FastExpansionSumZeroelim(int elen, Span<double> e, int flen, Span<double> f, Span<double> h)
-        {
-            fixed (double* ePtr = e)
-            fixed (double* fPtr = f)
-            fixed (double* hPtr = h)
-            {
-                return FastExpansionSumZeroelim(elen, ePtr, flen, fPtr, hPtr);
-            }
         }
     }
 }
