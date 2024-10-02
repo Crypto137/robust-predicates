@@ -2,8 +2,17 @@
 
 namespace RobustPredicates
 {
+    /// <summary>
+    /// Return a positive value if the point pd lies below the plane passing through pa, pb, and pc; "below" is defined so
+    /// that pa, pb, and pc appear in counterclockwise order when viewed from above the plane.  Returns a negative value if
+    /// pd lies above the plane.  Returns zero if the points are coplanar.  The result is also a rough approximation of six
+    /// times the signed volume of the tetrahedron defined by the four points.
+    /// </summary>
     public class Orient3D
     {
+        /// <summary>
+        /// Approximate 3D orientation test. Nonrobust.
+        /// </summary>
         public static unsafe double Fast(double* pa, double* pb, double* pc, double* pd)
         {
             double adx = pa[0] - pd[0];
@@ -21,6 +30,9 @@ namespace RobustPredicates
                  + cdx * (ady * bdz - adz * bdy);
         }
 
+        /// <summary>
+        /// Approximate 3D orientation test. Nonrobust.
+        /// </summary>
         public static unsafe double Fast(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd)
         {
             fixed (double* paPtr = pa)
@@ -32,6 +44,9 @@ namespace RobustPredicates
             }
         }
 
+        /// <summary>
+        /// Adaptive exact 3D orientation test. Robust.
+        /// </summary>
         public static unsafe double Robust(double* pa, double* pb, double* pc, double* pd)
         {
             double adx = pa[0] - pd[0];
@@ -70,6 +85,9 @@ namespace RobustPredicates
             return Adapt(pa, pb, pc, pd, permanent);
         }
 
+        /// <summary>
+        /// Adaptive exact 3D orientation test. Robust.
+        /// </summary>
         public static unsafe double Robust(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd)
         {
             fixed (double* paPtr = pa)

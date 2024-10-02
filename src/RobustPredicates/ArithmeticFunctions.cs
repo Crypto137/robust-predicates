@@ -1,9 +1,10 @@
-﻿using System;
-
-namespace RobustPredicates
+﻿namespace RobustPredicates
 {
     internal static class ArithmeticFunctions
     {
+        /// <summary>
+        /// Produce a one-word estimate of an expansion's value.
+        /// </summary>
         internal static unsafe double Estimate(int len, double* e)
         {
             int eindex;
@@ -16,6 +17,9 @@ namespace RobustPredicates
             return Q;
         }
 
+        /// <summary>
+        /// Multiply an expansion by a scalar, eliminating zero components from the output expansion. Sets h = be.
+        /// </summary>
         internal static unsafe int ScaleExpansionZeroelim(int elen, double* e, double b, double* h)
         {
             MacrosHelpers.Split(b, out double bhi, out double blo);
@@ -47,6 +51,9 @@ namespace RobustPredicates
             return hindex;
         }
 
+        /// <summary>
+        /// Sum two expansions, eliminating zero components from the output expansion. Sets h = e + f.
+        /// </summary>
         internal static unsafe int FastExpansionSumZeroelim(int elen, double* e, int flen, double* f, double* h)
         {
             int findex;

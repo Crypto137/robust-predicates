@@ -2,8 +2,16 @@
 
 namespace RobustPredicates
 {
+    /// <summary>
+    /// Return a positive value if the point pe lies inside the sphere passing through pa, pb, pc, and pd; a negative value
+    /// if it lies outside; and zero if the five points are cospherical. The points pa, pb, pc, and pd must be ordered
+    /// so that they have a positive orientation (as defined by Orient3D.Robust()), or the sign of the result will be reversed.
+    /// </summary>
     public static class InSphere
     {
+        /// <summary>
+        /// Approximate 3D insphere test. Nonrobust.
+        /// </summary>
         public static unsafe double Fast(double* pa, double* pb, double* pc, double* pd, double* pe)
         {
             double aex = pa[0] - pe[0];
@@ -40,6 +48,9 @@ namespace RobustPredicates
             return (dlift * abc - clift * dab) + (blift * cda - alift * bcd);
         }
 
+        /// <summary>
+        /// Approximate 3D insphere test. Nonrobust.
+        /// </summary>
         public static unsafe double Fast(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd, ReadOnlySpan<double> pe)
         {
             fixed (double* paPtr = pa)
@@ -52,6 +63,9 @@ namespace RobustPredicates
             }
         }
 
+        /// <summary>
+        /// Adaptive exact 3D insphere test. Robust.
+        /// </summary>
         public static unsafe double Robust(double* pa, double* pb, double* pc, double* pd, double* pe)
         {
             double aex, bex, cex, dex;
@@ -156,6 +170,9 @@ namespace RobustPredicates
             return Adapt(pa, pb, pc, pd, pe, permanent);
         }
 
+        /// <summary>
+        /// Adaptive exact 3D insphere test. Robust.
+        /// </summary>
         public static unsafe double Robust(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd, ReadOnlySpan<double> pe)
         {
             fixed (double* paPtr = pa)

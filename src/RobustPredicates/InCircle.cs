@@ -2,8 +2,16 @@
 
 namespace RobustPredicates
 {
+    /// <summary>
+    /// Return a positive value if the point pd lies inside the circle passing through pa, pb, and pc; a negative value if
+    /// it lies outside; and zero if the four points are cocircular. The points pa, pb, and pc must be in counterclockwise
+    /// order, or the sign of the result will be reversed.
+    /// </summary>
     public static class InCircle
     {
+        /// <summary>
+        /// Approximate 2D incircle test. Nonrobust.
+        /// </summary>
         public static unsafe double Fast(double* pa, double* pb, double* pc, double* pd)
         {
             double adx = pa[0] - pd[0];
@@ -23,6 +31,9 @@ namespace RobustPredicates
             return alift * bcdet + blift * cadet + clift * abdet;
         }
 
+        /// <summary>
+        /// Approximate 2D incircle test. Nonrobust.
+        /// </summary>
         public static unsafe double Fast(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd)
         {
             fixed (double* paPtr = pa)
@@ -34,6 +45,9 @@ namespace RobustPredicates
             }
         }
 
+        /// <summary>
+        /// Exact 2D incircle test. Robust.
+        /// </summary>
         public static unsafe double Exact(double* pa, double* pb, double* pc, double* pd)
         {
             MacrosHelpers.TwoProduct(pa[0], pb[1], out double axby1, out double axby0);
@@ -130,6 +144,9 @@ namespace RobustPredicates
             return deter[deterlen - 1];
         }
 
+        /// <summary>
+        /// Exact 2D incircle test. Robust.
+        /// </summary>
         public static unsafe double Exact(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd)
         {
             fixed (double* paPtr = pa)
@@ -141,6 +158,9 @@ namespace RobustPredicates
             }
         }
 
+        /// <summary>
+        /// Adaptive exact 2D incircle test. Robust.
+        /// </summary>
         public static unsafe double Robust(double* pa, double* pb, double* pc, double* pd)
         {
             double adx = pa[0] - pd[0];
@@ -179,6 +199,9 @@ namespace RobustPredicates
             return Adapt(pa, pb, pc, pd, permanent);
         }
 
+        /// <summary>
+        /// Adaptive exact 2D incircle test. Robust.
+        /// </summary>
         public static unsafe double Robust(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc, ReadOnlySpan<double> pd)
         {
             fixed (double* paPtr = pa)

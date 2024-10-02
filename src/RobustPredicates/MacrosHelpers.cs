@@ -150,6 +150,9 @@ namespace RobustPredicates
             TwoProductTail(a, b, x, out y);
         }
 
+        /// <summary>
+        /// TwoProductPresplit() is TwoProduct() where one of the inputs has already been split. Avoids redundant splitting.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoProductPresplit(double a, double b, double bhi, double blo, out double x, out double y)
         {
@@ -161,6 +164,9 @@ namespace RobustPredicates
             y = (alo * blo) - err3;
         }
 
+        /// <summary>
+        /// TwoProduct2Presplit() is TwoProduct() where both of the inputs have already been split. Avoids redundant splitting.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void TwoProduct2Presplit(double a, double ahi, double alo, double b, double bhi, double blo, out double x, out double y)
         {

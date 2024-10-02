@@ -2,8 +2,16 @@
 
 namespace RobustPredicates
 {
+    /// <summary>
+    /// Return a positive value if the points pa, pb, and pc occur in counterclockwise order; a negative value if they occur
+    /// in clockwise order; and zero if they are collinear.  The  result is also a rough approximation of twice the signed
+    /// area of the triangle defined by the three points.
+    /// </summary>
     public static class Orient2D
     {
+        /// <summary>
+        /// Approximate 2D orientation test. Nonrobust.
+        /// </summary>
         public static unsafe double Fast(double* pa, double* pb, double* pc)
         {
             double acx = pa[0] - pc[0];
@@ -13,6 +21,9 @@ namespace RobustPredicates
             return acx * bcy - acy * bcx;
         }
 
+        /// <summary>
+        /// Approximate 2D orientation test. Nonrobust.
+        /// </summary>
         public static unsafe double Fast(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc)
         {
             fixed (double* paPtr = pa)
@@ -23,6 +34,9 @@ namespace RobustPredicates
             }
         }
 
+        /// <summary>
+        /// Exact 2D orientation test. Robust.
+        /// </summary>
         public static unsafe double Exact(double* pa, double* pb, double* pc)
         {
             MacrosHelpers.TwoProduct(pa[0], pb[1], out double axby1, out double axby0);
@@ -51,6 +65,9 @@ namespace RobustPredicates
             return w[wlength - 1];
         }
 
+        /// <summary>
+        /// Exact 2D orientation test. Robust.
+        /// </summary>
         public static unsafe double Exact(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc)
         {
             fixed (double* paPtr = pa)
@@ -61,6 +78,9 @@ namespace RobustPredicates
             }
         }
 
+        /// <summary>
+        /// Another exact 2D orientation test. Robust.
+        /// </summary>
         public static unsafe double Slow(double* pa, double* pb, double* pc)
         {
             MacrosHelpers.TwoDiff(pa[0], pc[0], out double acx, out double acxtail);
@@ -85,6 +105,9 @@ namespace RobustPredicates
             return deter[deterlen - 1];
         }
 
+        /// <summary>
+        /// Another exact 2D orientation test. Robust.
+        /// </summary>
         public static unsafe double Slow(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc)
         {
             fixed (double* paPtr = pa)
@@ -95,6 +118,9 @@ namespace RobustPredicates
             }
         }
 
+        /// <summary>
+        /// Adaptive exact 2D orientation test. Robust.
+        /// </summary>
         public static unsafe double Robust(double* pa, double* pb, double* pc)
         {
             double detleft = (pa[0] - pc[0]) * (pb[1] - pc[1]);
@@ -138,6 +164,9 @@ namespace RobustPredicates
             return Adapt(pa, pb, pc, detsum);
         }
 
+        /// <summary>
+        /// Adaptive exact 2D orientation test. Robust.
+        /// </summary>
         public static unsafe double Robust(ReadOnlySpan<double> pa, ReadOnlySpan<double> pb, ReadOnlySpan<double> pc)
         {
             fixed (double* paPtr = pa)
